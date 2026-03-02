@@ -1,4 +1,4 @@
-# ⚡ AI-Weekly-Insights - 自动化获取AI进展
+# ⚡ AI-Monthly-Insights - 自动化获取AI进展
 
 一个基于 Streamlit 开发的 AI 行业周报自动化展示工具。支持从 Google Sheets 实时同步数据，具备多维度筛选与精美的 UI 交互体验。
 

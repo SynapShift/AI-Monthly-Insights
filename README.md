@@ -10,13 +10,4 @@
 
 ## 🛠️ 部署指南
 
-### 1. 数据源准备
-将你的 Google Sheet 设置为 **“知道链接的任何人都可以查看”**。
 
-### 2. 部署至 Streamlit Cloud
-1. 将代码 Push 到 GitHub 仓库。
-2. 在 [Streamlit Cloud](https://share.streamlit.io/) 关联此仓库。
-3. **关键步骤（隐藏链接）**：
-   在 App 的 **Settings -> Secrets** 中添加以下配置：
-   ```toml
-   gsheet_url = "你的Google_Sheets_链接"

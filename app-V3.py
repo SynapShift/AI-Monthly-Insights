@@ -40,15 +40,46 @@ def load_all_data():
         st.error(f"读取失败，请确保工作表名称确认为 'sheet' 且包含'日期'列。错误: {e}")
         return pd.DataFrame()
 
-# --- 4. 视觉样式 (完全保留原有 UI) ---
+# --- 4. 视觉样式 (侧边栏下拉框改为浅色背景+黑色文字) ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
     html, body { font-family: 'Inter', sans-serif; }
     .stApp { background-color: #f6f8fa; }
+    
+    /* 侧边栏黑金样式 */
     [data-testid="stSidebar"] { background-color: #0d1117 !important; }
     [data-testid="stSidebar"] * { color: #f0f6fc !important; }
     .sidebar-title { color: #00c897 !important; font-size: 1.5rem; font-weight: 800; margin-bottom: 20px; }
+
+    /* --- 核心修改：下拉框设为浅色背景 + 纯黑文字 --- */
+    /* 下拉框未展开时的容器 */
+    div[data-baseweb="select"] > div {
+        background-color: #ffffff !important; /* 纯白背景 */
+        border-radius: 8px !important;
+        border: none !important;
+    }
+    
+    /* 选中的文字颜色 */
+    div[data-testid="stSelectbox"] div[data-baseweb="select"] span {
+        color: #000000 !important; /* 纯黑文字 */
+        font-weight: 700 !important; /* 加粗 */
+    }
+
+    /* 下拉箭头颜色 */
+    div[data-testid="stSelectbox"] svg {
+        fill: #000000 !important; /* 黑色箭头 */
+    }
+
+    /* 下拉列表展开后的选项颜色 */
+    div[data-baseweb="popover"] ul {
+        background-color: #ffffff !important;
+    }
+    div[data-baseweb="popover"] li {
+        color: #000000 !important; /* 选项也是黑色 */
+    }
+    /* -------------------------------------- */
+
     .stat-card { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; border: 1px solid #eef2f6; }
     .stat-val { font-size: 2.2rem; font-weight: 800; color: #1a1e26; }
     .feed-card { display: flex; background: white; padding: 30px; border-radius: 20px; margin-bottom: 25px; border: 1px solid #eef2f6; transition: transform 0.3s ease; }
@@ -134,3 +165,4 @@ if not all_data.empty:
 
 else:
     st.info("💡 请确保 Google Sheet 中有一个名为 `sheet` 的工作表，且包含有效数据。")
+

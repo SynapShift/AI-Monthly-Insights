@@ -42,58 +42,76 @@ def load_all_data():
 
 # --- 4. 视觉样式 (强力覆盖：纯白背景 + 纯黑文字 + 100% 不透明) ---
 st.markdown("""
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
-    html, body { font-family: 'Inter', sans-serif; }
-    .stApp { background-color: #f6f8fa; }
-    
-    /* 侧边栏整体样式 */
-    [data-testid="stSidebar"] { background-color: #0d1117 !important; }
-    [data-testid="stSidebar"] * { color: #f0f6fc !important; }
-    .sidebar-title { color: #00c897 !important; font-size: 1.5rem; font-weight: 800; margin-bottom: 20px; }
+<style>
+/* 全局字体与背景保持不变 */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+html, body { font-family: 'Inter', sans-serif; }
+.stApp { background-color: #f6f8fa; }
 
-    /* --- 核心修改：强制下拉框内文字为纯黑色，无透明度 --- */
-    
-    /* 1. 强制下拉框容器背景为白色 */
-    div[data-baseweb="select"] > div {
-        background-color: #FFFFFF !important;
-        border: none !important;
-    }
+/* 侧边栏样式不变 */
+[data-testid="stSidebar"] { background-color: #0d1117 !important; }
+[data-testid="stSidebar"] * { color: #f0f6fc !important; }
+.sidebar-title { color: #00c897 !important; font-size: 1.5rem; font-weight: 800; margin-bottom: 20px; }
 
-    /* 2. 强制选中后的文本颜色为纯黑，且不透明度为 1 */
-    div[data-testid="stSelectbox"] div[data-baseweb="select"] span {
-        color: #000000 !important;
-        -webkit-text-fill-color: #000000 !important; /* 针对某些浏览器的强制填充 */
-        opacity: 1 !important;
-        font-weight: 800 !important; /* 加粗提高辨识度 */
-    }
+/* ========== 核心修复：所有输入框文字强制深色 ========== */
+/* 1. 通用输入框 (text_input, number_input, text_area 等) */
+div[data-baseweb="input"] input,
+div[data-baseweb="input"] textarea,
+div[data-baseweb="input"] [data-testid="stTextInput"] input,
+div[data-testid="stTextInput"] input,
+div[data-testid="stNumberInput"] input {
+    color: #000000 !important;
+    -webkit-text-fill-color: #000000 !important;  /* Safari/Chrome 强制填充 */
+    caret-color: #000000 !important;              /* 光标颜色也改为黑色 */
+    background-color: #FFFFFF !important;          /* 背景纯白 */
+}
 
-    /* 3. 强制下拉箭头为黑色，确保视觉指引 */
-    div[data-testid="stSelectbox"] svg {
-        fill: #000000 !important;
-        opacity: 1 !important;
-    }
+/* 2. 下拉选择框 (selectbox) - 选中后显示的文本 */
+div[data-testid="stSelectbox"] div[data-baseweb="select"] span[data-testid="stMarkdownContainer"],
+div[data-testid="stSelectbox"] div[data-baseweb="select"] span,
+div[data-testid="stSelectbox"] div[data-baseweb="select"] [data-testid="stMarkdownContainer"] {
+    color: #000000 !important;
+    -webkit-text-fill-color: #000000 !important;
+    opacity: 1 !important;
+    font-weight: 600 !important;
+}
 
-    /* 4. 修复展开列表后的选项样式，确保选的时候也清晰 */
-    div[data-baseweb="popover"] ul {
-        background-color: #FFFFFF !important;
-    }
-    div[data-baseweb="popover"] li {
-        color: #000000 !important;
-        opacity: 1 !important;
-    }
-    
-    /* -------------------------------------- */
+/* 3. 下拉框背景和箭头 */
+div[data-baseweb="select"] > div {
+    background-color: #FFFFFF !important;
+    border: none !important;
+}
+div[data-testid="stSelectbox"] svg {
+    fill: #000000 !important;
+    opacity: 1 !important;
+}
 
-    .stat-card { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; border: 1px solid #eef2f6; }
-    .stat-val { font-size: 2.2rem; font-weight: 800; color: #1a1e26; }
-    .feed-card { display: flex; background: white; padding: 30px; border-radius: 20px; margin-bottom: 25px; border: 1px solid #eef2f6; }
-    .card-icon-area { flex-shrink: 0; width: 80px; height: 80px; border-radius: 16px; margin-right: 25px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; }
-    .card-title-main { font-size: 1.4rem; font-weight: 800; color: #111827; margin-bottom: 12px; }
-    .feature-block { background-color: #f8fafc; border-radius: 12px; padding: 18px; margin-bottom: 15px; border: 1px solid #eef2f6; }
-    .feature-label { font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 5px; display: block; }
-    </style>
-    """, unsafe_allow_html=True)
+/* 4. 下拉选项弹出层 */
+div[data-baseweb="popover"] ul {
+    background-color: #FFFFFF !important;
+}
+div[data-baseweb="popover"] li {
+    color: #000000 !important;
+    background-color: #FFFFFF !important;
+}
+div[data-baseweb="popover"] li:hover {
+    background-color: #f0f0f0 !important;  /* 悬停背景浅灰，文字保持黑 */
+    color: #000000 !important;
+}
+
+/* 5. 多选框/单选按钮的标签文字（如果有标签） */
+div[data-testid="stCheckbox"] label,
+div[data-testid="stRadio"] label {
+    color: #000000 !important;
+}
+
+/* 6. 强制所有输入相关的占位符为深灰色（可选） */
+::placeholder {
+    color: #555555 !important;
+    opacity: 1 !important;
+}
+</style>
+""", unsafe_allow_html=True)
 
 # --- 5. 侧边栏与过滤逻辑 ---
 st.sidebar.markdown('<p class="sidebar-title">📑 AI Sentinel</p>', unsafe_allow_html=True)
@@ -169,5 +187,6 @@ if not all_data.empty:
 
 else:
     st.info("💡 请确保 Google Sheet 中有一个名为 `sheet` 的工作表，且包含有效数据。")
+
 
 

@@ -113,7 +113,7 @@ if not all_data.empty:
             df = df[df[region_col] == selected_region]
 
     # --- 6. 主页面渲染 ---
-    st.title("🚀 AI Weekly Insights")
+    st.title("🚀 AI Monthly Insights")
 
     # 统计卡片渲染
     c1, c2, c3, c4 = st.columns(4)

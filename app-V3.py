@@ -92,7 +92,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # --- 5. 侧边栏与过滤逻辑 ---
-st.sidebar.markdown('<p class="sidebar-title">📑 AI Sentinel</p>', unsafe_allow_html=True)
+st.sidebar.markdown('<p class="sidebar-title">📑 AI报告</p>', unsafe_allow_html=True)
 
 all_data = load_all_data()
 

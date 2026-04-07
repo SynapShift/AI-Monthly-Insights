@@ -13,15 +13,15 @@ st.set_page_config(
 # --- 2. 配置读取 ---
 GSHEET_URL = st.secrets.get("gsheet_url", "")
 
-# --- 3. 核心数据加载 (仅读取名为 'sheet' 的分页) ---
+# --- 3. 数据加载 ---
 @st.cache_data(ttl=300)
 def load_all_data():
-    """从名为 'sheet' 的工作表读取所有数据"""
+
     if not GSHEET_URL:
         return pd.DataFrame()
     try:
         base_url = GSHEET_URL.split('/edit')[0]
-        # 指定读取 sheet_name 为 'sheet'
+       
         encoded_name = urllib.parse.quote("sheet")
         csv_url = f"{base_url}/export?format=csv&sheet={encoded_name}"
         
@@ -47,36 +47,35 @@ st.markdown("""
     html, body { font-family: 'Inter', sans-serif; }
     .stApp { background-color: #f6f8fa; }
     
-    /* 侧边栏黑金样式 */
+  
     [data-testid="stSidebar"] { background-color: #0d1117 !important; }
     [data-testid="stSidebar"] * { color: #f0f6fc !important; }
     .sidebar-title { color: #00c897 !important; font-size: 1.5rem; font-weight: 800; margin-bottom: 20px; }
 
-    /* --- 核心修改：下拉框设为浅色背景 + 纯黑文字 --- */
-    /* 下拉框未展开时的容器 */
+  
     div[data-baseweb="select"] > div {
-        background-color: #ffffff !important; /* 纯白背景 */
+        background-color: #ffffff !important; 
         border-radius: 8px !important;
         border: none !important;
     }
     
-    /* 选中的文字颜色 */
+
     div[data-testid="stSelectbox"] div[data-baseweb="select"] span {
-        color: #000000 !important; /* 纯黑文字 */
-        font-weight: 700 !important; /* 加粗 */
+        color: #000000 !important; 
+        font-weight: 700 !important; 
     }
 
-    /* 下拉箭头颜色 */
+   
     div[data-testid="stSelectbox"] svg {
-        fill: #000000 !important; /* 黑色箭头 */
+        fill: #000000 !important; 
     }
 
-    /* 下拉列表展开后的选项颜色 */
+  
     div[data-baseweb="popover"] ul {
         background-color: #ffffff !important;
     }
     div[data-baseweb="popover"] li {
-        color: #000000 !important; /* 选项也是黑色 */
+        color: #000000 !important; 
     }
     /* -------------------------------------- */
 
@@ -97,14 +96,12 @@ st.sidebar.markdown('<p class="sidebar-title">📑 AI报告</p>', unsafe_allow_h
 all_data = load_all_data()
 
 if not all_data.empty:
-    # 获取唯一的月份列表并排序
+
     month_options = sorted(all_data['选择月份'].unique().tolist(), reverse=True)
     selected_month = st.sidebar.selectbox("📅 选择月份", month_options)
-    
-    # 根据选择的月份过滤
+
     df = all_data[all_data['选择月份'] == selected_month].copy()
 
-    # 地域筛选 (保持原样)
     region_col = next((c for c in df.columns if c in ['地域', '地区']), None)
     if region_col:
         region_options = ["全部地区"] + sorted(df[region_col].unique().tolist())
@@ -115,7 +112,7 @@ if not all_data.empty:
     # --- 6. 主页面渲染 ---
     st.title("🚀 AI Monthly Insights")
 
-    # 统计卡片渲染
+
     c1, c2, c3, c4 = st.columns(4)
     cat_col = '分类' if '分类' in df.columns else None
     infra_n = len(df[df[cat_col].str.contains('基建', na=False)]) if cat_col else 0
@@ -127,7 +124,7 @@ if not all_data.empty:
     c3.markdown(f'<div class="stat-card"><div class="stat-val">{app_n}</div><div style="color:#94a3b8">🎨 APPS</div></div>', unsafe_allow_html=True)
     c4.markdown(f'<div class="stat-card"><div class="stat-val">{fin_n}</div><div style="color:#94a3b8">💰 FINANCE</div></div>', unsafe_allow_html=True)
 
-    # Tab 渲染
+
     tabs = st.tabs(["🔥 全部", "🏗️ 基建", "🎨 应用", "💰 金融"])
     
     def render_feed(data):

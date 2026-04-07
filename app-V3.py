@@ -26,6 +26,8 @@ def load_all_data():
             df = df.dropna(subset=['日期'])
             df['选择月份'] = df['日期'].dt.strftime('%Y-%m')
             df = df.sort_values('日期', ascending=False)
+        if '分类' in df.columns:
+            df['分类'] = df['分类'].astype(str).str.strip()
         return df
     except Exception as e:
         st.error(f"读取失败，请确保工作表名称确认为 'sheet' 且包含'日期'列。错误: {e}")
@@ -93,9 +95,12 @@ if not all_data.empty:
 
     c1, c2, c3, c4 = st.columns(4)
     cat_col = '分类' if '分类' in df.columns else None
-    infra_n = len(df[df[cat_col].str.contains('基建', na=False)]) if cat_col else 0
-    app_n = len(df[df[cat_col].str.contains('应用', na=False)]) if cat_col else 0
-    fin_n = len(df[df[cat_col].str.contains('金融', na=False)]) if cat_col else 0
+    if cat_col:
+        infra_n = len(df[df[cat_col] == '基建'])
+        app_n = len(df[df[cat_col] == '应用'])
+        fin_n = len(df[df[cat_col] == '金融'])
+    else:
+        infra_n = app_n = fin_n = 0
     
     c1.markdown(f'<div class="stat-card"><div class="stat-val">{len(df)}</div><div style="color:#94a3b8">TOTAL</div></div>', unsafe_allow_html=True)
     c2.markdown(f'<div class="stat-card"><div class="stat-val">{infra_n}</div><div style="color:#94a3b8">🏗️ INFRA</div></div>', unsafe_allow_html=True)
@@ -109,8 +114,13 @@ if not all_data.empty:
             st.info("当前月份及条件下暂无数据")
             return
         for _, row in data.iterrows():
-            cat = str(row['分类']) if '分类' in row else "未分类"
-            icon, color = ("🏗️", "#0088cc") if "基建" in cat else (("💰", "#dd9900") if "金融" in cat else ("🎨", "#00c897"))
+            cat = row['分类'] if '分类' in row else "未分类"
+            if cat == "基建":
+                icon, color = "🏗️", "#0088cc"
+            elif cat == "金融":
+                icon, color = "💰", "#dd9900"
+            else:
+                icon, color = "🎨", "#00c897"
             month_str = f"{row['日期'].year}/{row['日期'].month}"
             company_key = next((k for k in ['公司', 'Company', '企业'] if k in row), '公司')
             
@@ -132,10 +142,13 @@ if not all_data.empty:
                 </div>
             """, unsafe_allow_html=True)
 
-    with tabs[0]: render_feed(df)
-    with tabs[1]: render_feed(df[df[cat_col].str.contains('基建', na=False)]) if cat_col else st.warning("未找到分类列")
-    with tabs[2]: render_feed(df[df[cat_col].str.contains('应用', na=False)]) if cat_col else st.warning("未找到分类列")
-    with tabs[3]: render_feed(df[df[cat_col].str.contains('金融', na=False)]) if cat_col else st.warning("未找到分类列")
+    if cat_col:
+        with tabs[0]: render_feed(df)
+        with tabs[1]: render_feed(df[df[cat_col] == '基建'])
+        with tabs[2]: render_feed(df[df[cat_col] == '应用'])
+        with tabs[3]: render_feed(df[df[cat_col] == '金融'])
+    else:
+        st.warning("未找到分类列")
 
 else:
     st.info("💡 请确保 Google Sheet 中有一个名为 `sheet` 的工作表，且包含有效数据。")

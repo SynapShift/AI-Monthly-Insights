@@ -46,12 +46,13 @@ def load_sheet_data():
 # 爬取 Follow-Builders 开源项目数据 (第二页数据)
 # 修改后的函数
 @st.cache_data(ttl=3600)
+@st.cache_data(ttl=3600)
 def fetch_builder_feeds():
     base_url = "https://raw.githubusercontent.com/zarazhangrui/follow-builders/main/"
     feeds = {
         "Twitter": base_url + "feed-x.json",
         "Podcasts": base_url + "feed-podcasts.json",
-        "Blogs": base_url + "feed-blogs.json"  # 新增
+        "Blogs": base_url + "feed-blogs.json"
     }
     results = {"Twitter": [], "Podcasts": [], "Blogs": []}
     
@@ -61,26 +62,37 @@ def fetch_builder_feeds():
             if r.status_code == 200:
                 raw_data = r.json()
                 
+                # --- 增强版 Twitter 解析 ---
                 if key == "Twitter":
-                    builders_list = raw_data.get("x", [])
-                    flattened_x = []
-                    for builder in builders_list:
-                        name = builder.get('name', 'Unknown')
-                        handle = builder.get('handle', 'unknown')
-                        for tweet in builder.get('tweets', []):
-                            tweet['author_name'] = name
-                            tweet['author_handle'] = handle
-                            flattened_x.append(tweet)
-                    results["Twitter"] = sorted(flattened_x, key=lambda x: x.get('createdAt', ''), reverse=True)
+                    # 兼容性检查：有些版本嵌套在 'x' 里，有些直接是列表
+                    builders_list = raw_data.get("x") if isinstance(raw_data, dict) else raw_data
+                    if not builders_list and isinstance(raw_data, list):
+                        builders_list = raw_data
+                    
+                    if builders_list:
+                        flattened_x = []
+                        for builder in builders_list:
+                            # 确保 builder 是字典格式
+                            if not isinstance(builder, dict): continue
+                            name = builder.get('name', 'Unknown')
+                            handle = builder.get('handle', 'unknown')
+                            for tweet in builder.get('tweets', []):
+                                tweet['author_name'] = name
+                                tweet['author_handle'] = handle
+                                flattened_x.append(tweet)
+                        # 排序并去重
+                        results["Twitter"] = sorted(flattened_x, key=lambda x: x.get('createdAt', ''), reverse=True)
                 
+                # --- 播客解析 ---
                 elif key == "Podcasts":
-                    # 适配你提供的格式：在 "podcasts" 键下
-                    results["Podcasts"] = raw_data.get("podcasts", [])
+                    results["Podcasts"] = raw_data.get("podcasts", []) if isinstance(raw_data, dict) else raw_data
                 
+                # --- 博客解析 ---
                 elif key == "Blogs":
-                    # 适配你提供的格式：在 "blogs" 键下
-                    results["Blogs"] = raw_data.get("blogs", [])
-        except:
+                    results["Blogs"] = raw_data.get("blogs", []) if isinstance(raw_data, dict) else raw_data
+        except Exception as e:
+            # 方便你在本地控制台看到错误详情
+            print(f"Error fetching {key}: {e}")
             continue
     return results
          
@@ -178,25 +190,25 @@ elif selected == "知名博主动态":
         else:
             st.info("💡 暂无播客更新数据")
 
-    with tab3:
+     with tab3:
         blog_list = data_feeds.get("Blogs", [])
         if blog_list:
             for blog in blog_list[:8]:
                 st.markdown(f"""
-                <div class="product-card" style="min-height:100px;">
+                <div class="product-card">
                     <div style="display:flex; justify-content:space-between;">
                         <span class="tag" style="background-color:#E8F2FF; color:#0071E3;">{blog.get('name', 'Blog')}</span>
-                        <span class="date-text" style="font-size:11px; color:#86868b;">{blog.get('publishedAt') or '近期'}</span>
+                        <span class="date-text" style="font-size:11px;">{blog.get('publishedAt', '')[:10]}</span>
                     </div>
                     <h4 style="margin:10px 0; font-size:16px;">{blog.get('title')}</h4>
-                    <p style="font-size:13px; color:#424245; line-height:1.5;">{blog.get('content', '')[:180]}...</p>
-                    <div style="margin-top:10px; text-align:right; border-top: 1px solid #F5F5F7; padding-top:8px;">
+                    <p style="font-size:13px; color:#424245;">{blog.get('description', '')[:150]}...</p>
+                    <div style="margin-top:10px; text-align:right;">
                         <a href="{blog.get('url','#')}" target="_blank" style="color:#0071e3; font-size:12px;">阅读全文 →</a>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
         else:
-            st.info("💡 暂无官方博客数据")
+            st.info("💡 正在等待 GitHub Actions 更新博客数据...")
 
 
 # --- 页面 3: 学习资料库 ---

@@ -166,31 +166,64 @@ elif selected == "知名博主动态":
                     """, unsafe_allow_html=True)
 
     with tab2:
-        pod_list = data_feeds.get("Podcasts", [])
-        if pod_list:
-            for pod in pod_list[:8]:
-                raw_transcript = pod.get('transcript', '')
-                clean_summary = re.sub(r'Speaker \d+ \| \d+:\d+ - \d+:\d+', '', raw_transcript)
-                clean_summary = html.escape(clean_summary.strip())[:240] + "..."
-                pub_date = str(pod.get('publishedAt', ''))[:10] or "2026-04-10"
-                
-                st.markdown(f"""
-                <div class="product-card">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
-                        <span style="border-left:3px solid #E60012; padding-left:8px; font-size:11px; font-weight:700; color:#1D1D1F;">{pod.get('name', 'PODCAST').upper()}</span>
-                        <span style="color:#86868B; font-size:11px;">{pub_date}</span>
+            # 定义弹窗函数 (Streamlit 1.34+ 支持 st.dialog)
+            @st.dialog("对话全文摘要", width="large")
+            def show_full_transcript(title, content):
+                st.markdown(f"### {title}")
+                st.markdown("---")
+                # 使用 container 包装并设置高度，实现内部滚动
+                with st.container(height=500):
+                    st.write(content)
+                if st.button("关闭"):
+                    st.rerun()
+    
+            pod_list = data_feeds.get("Podcasts", [])
+            if pod_list:
+                for pod in pod_list[:8]:
+                    # 1. 文本清洗
+                    import re
+                    raw_transcript = pod.get('transcript', '')
+                    # 去掉 Speaker 标识符
+                    clean_text = re.sub(r'Speaker \d+ \| \d+:\d+ - \d+:\d+', '', raw_transcript).strip()
+                    
+                    # 预览长度延长至 600 字符
+                    preview_summary = html.escape(clean_text)[:600] + "..."
+                    
+                    pub_date = str(pod.get('publishedAt', ''))[:10] or "2026-04-10"
+                    pod_name = pod.get('name', 'PODCAST').upper()
+                    title = pod.get('title', 'Untitled')
+    
+                    # 2. 渲染卡片
+                    st.markdown(f"""
+                    <div class="product-card">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+                            <span style="border-left:3px solid #E60012; padding-left:8px; font-size:11px; font-weight:700; color:#1D1D1F;">{pod_name}</span>
+                            <span style="color:#86868B; font-size:11px;">{pub_date}</span>
+                        </div>
+                        <h4 style="margin:0 0 12px 0; font-size:17px; color:#1D1D1F; line-height:1.4;">{html.escape(title)}</h4>
+                        <div class="insight-box">
+                            <p style="margin:0; font-size:13px; color:#424245; line-height:1.6;">
+                                <span style="color:#E60012; font-weight:700; font-size:10px; margin-right:6px;">KEY INSIGHT:</span>{preview_summary}
+                            </p>
+                        </div>
                     </div>
-                    <h4 style="margin:0 0 12px 0; font-size:17px; color:#1D1D1F; line-height:1.4;">{html.escape(pod.get('title', ''))}</h4>
-                    <div class="insight-box">
-                        <p style="margin:0; font-size:13px; color:#424245; line-height:1.6;">
-                            <span style="color:#E60012; font-weight:700; font-size:10px; margin-right:6px;">KEY INSIGHT:</span>{clean_summary}
-                        </p>
-                    </div>
-                    <div style="text-align:right; margin-top:10px; border-top:1px solid #F2F2F7; padding-top:10px;">
-                        <a href="{pod.get('url','#')}" target="_blank" style="color:#0071E3; font-size:12px; text-decoration:none; font-weight:600;">VIEW TRANSCRIPT &rarr;</a>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+                    """, unsafe_allow_html=True)
+    
+                    # 3. 底部操作栏：左侧弹窗按钮，右侧跳转链接
+                    col_btn1, col_btn2 = st.columns([1, 1])
+                    with col_btn1:
+                        if st.button(f"展开全文摘要", key=f"btn_{pod.get('url')}"):
+                            show_full_transcript(title, clean_text)
+                    with col_btn2:
+                        # 保持靠右对齐的样式
+                        st.markdown(f"""
+                        <div style="text-align:right; padding-top:10px;">
+                            <a href="{pod.get('url','#')}" target="_blank" style="color:#0071E3; font-size:12px; text-decoration:none; font-weight:600;">收听原片 &rarr;</a>
+                        </div>
+                        """, unsafe_allow_html=True)
+            else:
+                st.info("💡 正在同步最新播客洞察...")
+
 
     with tab3:
         blog_list = data_feeds.get("Blogs", [])

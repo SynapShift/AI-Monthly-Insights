@@ -145,7 +145,7 @@ if selected == "AI 产品进展":
 elif selected == "知名博主动态":
     st.markdown("<h1 style='text-align: center; margin-bottom: 20px;'>🏗️ 知名博主动态</h1>", unsafe_allow_html=True)
     
-    # 1. 样式校准：确保按钮文字和链接文字在像素级是一致的
+    # ================= 1. 核心 UI 样式统一 =================
     st.markdown("""
     <style>
     /* 容器边框美化 */
@@ -156,46 +156,60 @@ elif selected == "知名博主动态":
         padding: 20px !important;
     }
 
-    /* 按钮样式彻底重写：字体 12px，颜色与链接一致 */
+    /* --- 核心：统一按钮与链接的样式 --- */
+    /* 1. 针对 Streamlit Button 的深度定制 */
     div[data-testid="stButton"] button {
         background-color: transparent !important;
-        color: #86868B !important; /* 统一使用次要链接灰色 */
+        color: #0071E3 !important; /* 统一蓝色 */
         border: none !important;
         padding: 0 !important;
         margin: 0 !important;
-        font-size: 12px !important; /* 字体调小 */
-        font-weight: 500 !important;
+        font-size: 12px !important;
+        font-weight: 600 !important;
         width: auto !important;
         min-height: unset !important;
         line-height: 1.5 !important;
         box-shadow: none !important;
-        text-transform: none !important;
+        display: inline-flex !important;
+        align-items: center !important;
     }
     
-    /* 悬停效果：变蓝加下划线 */
+    /* 按钮悬停效果 */
     div[data-testid="stButton"] button:hover {
+        text-decoration: underline !important;
+        background-color: transparent !important;
         color: #0071E3 !important;
+    }
+
+    /* 2. 针对 HTML 链接的统一样式 */
+    .unified-link {
+        color: #0071E3 !important;
+        font-size: 12px !important;
+        text-decoration: none !important;
+        font-weight: 600 !important;
+        display: inline-flex;
+        align-items: center;
+    }
+    .unified-link:hover {
         text-decoration: underline !important;
     }
 
-    /* 消除点击时的焦点黑框 */
-    div[data-testid="stButton"] button:focus:not(:active) {
-        color: #86868B !important;
-        border: none !important;
-        box-shadow: none !important;
+    /* 右对齐容器 */
+    .right-align-container {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 15px; /* 两个链接之间的间距 */
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid #F5F5F7;
     }
 
-    /* 右对齐控制 */
+    /* 修正 Streamlit Column 内部的默认边距 */
     [data-testid="column"] {
         display: flex !important;
         justify-content: flex-end !important;
         align-items: center !important;
-    }
-
-    /* 链接与按钮之间的 5px 间距 */
-    .link-fix {
-        margin-left: 5px;
-        padding-top: 1px; /* 修正基线对齐 */
     }
     </style>
     """, unsafe_allow_html=True)
@@ -203,7 +217,7 @@ elif selected == "知名博主动态":
     data_feeds = fetch_builder_feeds()
     tab1, tab2, tab3 = st.tabs(["Twitter Insights", "Podcast Summary", "Official Blog"])
 
-    # --- Tab 1: Twitter ---
+    # --- Tab 1: Twitter (保持原样) ---
     with tab1:
         twitter_list = data_feeds.get("Twitter", [])
         if twitter_list:
@@ -220,12 +234,12 @@ elif selected == "知名博主动态":
                         <div style="font-size:13px; color:#1d1d1f; line-height:1.6;">{clean_text}</div>
                         <div style="margin-top:15px; border-top: 1px solid #F5F5F7; padding-top:10px; display:flex; justify-content:space-between; align-items:center;">
                             <span style="color:#86868b; font-size:10px;">🕒 {tweet.get('createdAt', '')[:10]}</span>
-                            <a href="{tweet.get('url', '#')}" target="_blank" style="color:#0071e3; font-size:11px; text-decoration:none; font-weight:600;">Original Post ↗</a>
+                            <a href="{tweet.get('url', '#')}" target="_blank" class="unified-link">Original Post ↗</a>
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
 
-    # --- Tab 2: Podcast ---
+    # --- Tab 2: Podcast (修改对齐和样式) ---
     with tab2:
         @st.dialog("对话全文摘要", width="large")
         def show_full_transcript(title, content):
@@ -233,8 +247,6 @@ elif selected == "知名博主动态":
             st.markdown("---")
             with st.container(height=500):
                 st.write(content)
-            if st.button("关闭窗口"):
-                st.rerun()
 
         pod_list = data_feeds.get("Podcasts", [])
         if pod_list:
@@ -243,7 +255,7 @@ elif selected == "知名博主动态":
                 clean_text = re.sub(r'Speaker \d+ \| \d+:\d+ - \d+:\d+', '', raw_transcript).strip()
                 preview_summary = html.unescape(clean_text)[:1000] + "..."
                 title_clean = html.unescape(pod.get('title', 'Untitled'))
-                pub_date = str(pod.get('publishedAt', ''))[:10] or "2026-04-19"
+                pub_date = str(pod.get('publishedAt', ''))[:10]
 
                 with st.container(border=True):
                     st.markdown(f"""
@@ -257,25 +269,20 @@ elif selected == "知名博主动态":
                             <span style="color:#E60012; font-weight:700; font-size:10px; margin-right:6px;">KEY INSIGHT:</span>{preview_summary}
                         </p>
                     </div>
+                    <div style="border-top: 1px solid #F5F5F7; margin-bottom: -10px;"></div>
                     """, unsafe_allow_html=True)
                     
-                    # 底部交互区：c2 和 c3 紧密排列
-                    c1, c2, c3 = st.columns([0.6, 0.25, 0.15])
+                    # 使用较窄的列比例，迫使两个按钮靠右并排
+                    _, c2, c3 = st.columns([0.65, 0.21, 0.14])
                     with c2:
-                        # 现在的按钮长得跟链接一模一样
                         if st.button("阅读全文摘要 ›", key=f"btn_{pod.get('url')}"):
                             show_full_transcript(title_clean, clean_text)
                     with c3:
-                        st.markdown(f"""
-                        <div class="link-fix">
-                            <a href="{pod.get('url','#')}" target="_blank" style="color:#86868B; font-size:12px; text-decoration:none; font-weight:500;">收听原片 ↗</a>
-                        </div>
-                        """, unsafe_allow_html=True)
-
+                        st.markdown(f'<a href="{pod.get("url","#")}" target="_blank" class="unified-link">收听原片 ↗</a>', unsafe_allow_html=True)
         else:
             st.info("💡 正在同步最新播客洞察...")
 
-    # --- Tab 3: Official Blog ---
+    # --- Tab 3: Official Blog (修改对齐和样式) ---
     with tab3:
         blog_list = data_feeds.get("Blogs", [])
         if blog_list:
@@ -291,13 +298,11 @@ elif selected == "知名博主动态":
                     </div>
                     <h4 style="margin:0 0 10px 0; font-size:17px; line-height:1.4; color:#1D1D1F;">{blog.get('title')}</h4>
                     <p style="font-size:13px; color:#424245; line-height:1.6;">{clean_blog}</p>
-                    <div style="margin-top:12px; text-align:right; border-top:1px solid #F5F5F7; padding-top:10px;">
-                        <a href="{blog.get('url','#')}" target="_blank" style="color:#0071e3; font-size:12px; text-decoration:none; font-weight:600;">阅读全文 ↗</a>
+                    <div class="right-align-container">
+                        <a href="{blog.get('url','#')}" target="_blank" class="unified-link">阅读全文 ↗</a>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
-   
-
 
 
 elif selected == "AI 学习资料库":

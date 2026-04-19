@@ -156,9 +156,9 @@ elif selected == "知名博主动态":
         padding: 20px !important;
     }
 
-    /* --- 核心：彻底抹平按钮和链接的差异 --- */
+    /* --- 核心：深度校准按钮与链接的字号与粗细 --- */
     
-    /* 1. 针对 Streamlit Button 的定制（阅读全文按钮） */
+    /* 1. 针对阅读全文按钮 (Streamlit Button) */
     div[data-testid="stButton"] button {
         background-color: transparent !important;
         color: #0071E3 !important;
@@ -166,16 +166,17 @@ elif selected == "知名博主动态":
         padding: 0 !important;
         margin: 0 !important;
         font-size: 12px !important; 
-        font-weight: 600 !important;
+        font-weight: 700 !important; /* 强制加粗 */
         width: auto !important;
-        min-height: 20px !important; 
-        height: 20px !important;
-        line-height: 20px !important; 
+        min-height: 18px !important; 
+        height: 18px !important;
+        line-height: 18px !important; 
         box-shadow: none !important;
         display: inline-flex !important;
         align-items: center !important;
         justify-content: flex-end !important;
         vertical-align: middle !important;
+        letter-spacing: 0.5px !important; /* 微调间距，防止视觉虚大 */
     }
     
     div[data-testid="stButton"] button:hover {
@@ -184,28 +185,24 @@ elif selected == "知名博主动态":
         color: #0071E3 !important;
     }
 
-    div[data-testid="stButton"] button:focus:not(:active) {
-        border: none !important;
-        box-shadow: none !important;
-    }
-
-    /* 2. 针对 HTML 链接的统一样式（收听原片、外部链接） */
+    /* 2. 针对收听原片链接 (HTML Link) */
     .unified-link {
         color: #0071E3 !important;
         font-size: 12px !important; 
         text-decoration: none !important;
-        font-weight: 600 !important;
-        height: 20px !important;
-        line-height: 20px !important; 
+        font-weight: 700 !important; /* 强制加粗，保持一致 */
+        height: 18px !important;
+        line-height: 18px !important; 
         display: inline-flex;
         align-items: center;
         vertical-align: middle;
+        letter-spacing: 0.5px;
     }
     .unified-link:hover {
         text-decoration: underline !important;
     }
 
-    /* 强制列容器宽度紧凑并靠右 */
+    /* 强制列容器内部对齐 */
     [data-testid="column"] {
         display: flex !important;
         justify-content: flex-end !important;
@@ -274,7 +271,7 @@ elif selected == "知名博主动态":
                     <div style="border-top: 1px solid #F5F5F7; margin-bottom: -10px; margin-top: 10px;"></div>
                     """, unsafe_allow_html=True)
                     
-                    # 比例精准复原：[0.82, 0.09, 0.09]
+                    # 比例保持：[0.82, 0.09, 0.09]
                     c1, c2, c3 = st.columns([0.82, 0.09, 0.09])
                     with c2:
                         if st.button("阅读全文 ↗", key=f"btn_{pod.get('url')}"):

@@ -124,7 +124,8 @@ def load_data():
 
 df = load_data()
 
-# ================= 页面路由 =================
+
+# ================= 页面路由：AI 产品进展部分 =================
 if selected == "AI 产品进展":
     st.markdown("<h1 style='text-align: center; margin-top: 20px;'>🚀 AI 产品进展</h1>", unsafe_allow_html=True)
     
@@ -141,25 +142,39 @@ if selected == "AI 产品进展":
         if category_filter: filtered_df = filtered_df[filtered_df['分类'].isin(category_filter)]
         if company_filter: filtered_df = filtered_df[filtered_df['公司'].isin(company_filter)]
 
-        # 瀑布流布局
-        for _, row in filtered_df.iterrows():
-            st.markdown(f"""
-            <div class="product-card">
-                <div style="display: flex; justify-content: space-between;">
-                    <span style="font-size: 13px; color: #86868b; font-weight: 600;">{row['公司']}</span>
-                    <span style="color: #86868b; font-size: 13px;">{row['日期']}</span>
-                </div>
-                <h2 style="margin: 8px 0; font-size: 24px;">{row['进展']}</h2>
-                <div style="margin-bottom: 15px;">
-                    <span class="tag tag-highlight">{row['分类']}</span>
-                    <span class="tag">{row['地域']}</span>
-                </div>
-                <p style="color: #1d1d1f; line-height: 1.5;">{row['核心特点']}</p>
-                <div class="insight-quote">
-                    <b>市场反馈：</b>{row['市场反响']}
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+        # --- 修改部分：网格布局实现 ---
+        # 设定每行显示的列数
+        cols_per_row = 3 
+        
+        # 将数据按每行 3 个进行分组
+        for i in range(0, len(filtered_df), cols_per_row):
+            row_data = filtered_df.iloc[i : i + cols_per_row]
+            cols = st.columns(cols_per_row)
+            
+            for index, (idx, row) in enumerate(row_data.iterrows()):
+                with cols[index]:
+                    st.markdown(f"""
+                    <div class="product-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 12px; color: #86868b; font-weight: 600; text-transform: uppercase;">{row['公司']}</span>
+                            <span style="color: #86868b; font-size: 12px;">{row['日期']}</span>
+                        </div>
+                        <h2 style="margin: 12px 0 8px 0; font-size: 20px; line-height: 1.2;">{row['进展']}</h2>
+                        <div style="margin-bottom: 12px;">
+                            <span class="tag tag-highlight">{row['分类']}</span>
+                            <span class="tag">{row['地域']}</span>
+                        </div>
+                        <p style="color: #424245; line-height: 1.5; font-size: 14px; height: 60px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">
+                            {row['核心特点']}
+                        </p>
+                        <div class="insight-quote" style="margin-top: 10px;">
+                            <div style="font-size: 12px; font-weight: 700; color: #1d1d1f; margin-bottom: 4px;">市场反馈</div>
+                            <div style="font-size: 13px; color: #6e6e73;">{row['市场反响']}</div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+        # --- 修改结束 ---
+
     else:
         st.warning("请检查数据配置...")
 

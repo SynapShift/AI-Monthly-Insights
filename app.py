@@ -144,10 +144,10 @@ if selected == "AI 产品进展":
 elif selected == "知名博主动态":
     st.markdown("<h1 style='text-align: center; margin-bottom: 20px;'>🏗️ 知名博主动态</h1>", unsafe_allow_html=True)
     
-    # ================= 1. UI 样式深度校准（抹平按钮与链接差异） =================
+    # ================= 1. 核心 UI 样式统一 =================
     st.markdown("""
     <style>
-    /* 卡片外层容器 */
+    /* 容器边框美化 */
     [data-testid="stVerticalBlockBorderWrapper"] {
         border-radius: 16px !important;
         border-color: #F2F2F7 !important;
@@ -155,42 +155,43 @@ elif selected == "知名博主动态":
         padding: 20px !important;
     }
 
-    /* 1. 彻底改造 Streamlit 原生按钮：使其看起来像普通文字链接 */
+    /* --- 核心：彻底抹平按钮和链接的差异 --- */
+    /* 1. 针对 Streamlit Button 的深度定制 */
     div[data-testid="stButton"] button {
         background-color: transparent !important;
-        color: #0071E3 !important; 
+        color: #0071E3 !important; /* 统一蓝色 */
         border: none !important;
         padding: 0 !important;
         margin: 0 !important;
-        font-size: 12px !important; /* 强制 12px 大小 */
+        font-size: 12px !important; /* 统一 12px */
         font-weight: 600 !important;
         width: auto !important;
-        min-height: 18px !important;
+        min-height: 18px !important; /* 限制最小高度，防止撑开卡片 */
         height: 18px !important;
         line-height: 18px !important;
         box-shadow: none !important;
         display: inline-flex !important;
         align-items: center !important;
         vertical-align: middle !important;
-        text-transform: none !important;
     }
     
+    /* 按钮悬停效果 */
     div[data-testid="stButton"] button:hover {
         text-decoration: underline !important;
-        color: #0071E3 !important;
         background-color: transparent !important;
+        color: #0071E3 !important;
     }
 
+    /* 消除点击时的焦点阴影 */
     div[data-testid="stButton"] button:focus:not(:active) {
-        color: #0071E3 !important;
         border: none !important;
         box-shadow: none !important;
     }
 
-    /* 2. 统一样式的 HTML 链接（用于 Tab 2 的收听原片和 Tab 3 的阅读全文） */
+    /* 2. 针对 HTML 链接的统一样式 */
     .unified-link {
         color: #0071E3 !important;
-        font-size: 12px !important; /* 强制 12px 大小 */
+        font-size: 12px !important; /* 统一 12px */
         text-decoration: none !important;
         font-weight: 600 !important;
         line-height: 18px !important;
@@ -202,7 +203,7 @@ elif selected == "知名博主动态":
         text-decoration: underline !important;
     }
 
-    /* 3. 让 Streamlit 的列内容自动靠右下角对齐 */
+    /* 修正 Streamlit Column 内部的默认对齐方式，强制靠右 */
     [data-testid="column"] {
         display: flex !important;
         justify-content: flex-end !important;
@@ -236,7 +237,7 @@ elif selected == "知名博主动态":
                     </div>
                     """, unsafe_allow_html=True)
 
-    # --- Tab 2: Podcast Summary ---
+    # --- Tab 2: Podcast ---
     with tab2:
         @st.dialog("对话全文摘要", width="large")
         def show_full_transcript(title, content):
@@ -254,7 +255,7 @@ elif selected == "知名博主动态":
                 clean_text = re.sub(r'Speaker \d+ \| \d+:\d+ - \d+:\d+', '', raw_transcript).strip()
                 preview_summary = html.unescape(clean_text)[:1000] + "..."
                 title_clean = html.unescape(pod.get('title', 'Untitled'))
-                pub_date = str(pod.get('publishedAt', ''))[:10] or "2026-04-19"
+                pub_date = str(pod.get('publishedAt', ''))[:10]
 
                 with st.container(border=True):
                     st.markdown(f"""
@@ -271,14 +272,13 @@ elif selected == "知名博主动态":
                     <div style="border-top: 1px solid #F5F5F7; margin-bottom: -10px; margin-top: 10px;"></div>
                     """, unsafe_allow_html=True)
                     
-                    # 比例调整：0.7 占位，0.16 放“阅读全文”，0.14 放“收听原片”，完美靠右
+                    # 强行缩窄右侧两列，保证文字在右下角紧密排列
                     c1, c2, c3 = st.columns([0.7, 0.16, 0.14])
                     with c2:
-                        # “阅读全文摘要” 改为 “阅读全文 ›”
+                        # 标签改为“阅读全文”，并使用与链接风格类似的右箭头
                         if st.button("阅读全文 ›", key=f"btn_{pod.get('url')}"):
                             show_full_transcript(title_clean, clean_text)
                     with c3:
-                        # 应用统一的类名 unified-link，抹平样式差异
                         st.markdown(f'<a href="{pod.get("url","#")}" target="_blank" class="unified-link">收听原片 ↗</a>', unsafe_allow_html=True)
 
         else:
@@ -305,7 +305,6 @@ elif selected == "知名博主动态":
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
-
 
 
                 

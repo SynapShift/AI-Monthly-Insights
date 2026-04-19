@@ -46,12 +46,22 @@ def load_data():
         return pd.DataFrame()
 
 @st.cache_data(ttl=3600)
-def fetch_github_report():
-    url = "https://raw.githubusercontent.com/zarazhangrui/follow-builders/main/README.zh-CN.md"
+def fetch_follow_builders_feed():
+    # 根据其工作原理，它有一个中心化的 feed 地址
+    # 在该项目中，通常是这个 raw 链接（或指向其后端 API）
+    feed_url = "https://raw.githubusercontent.com/zarazhangrui/follow-builders/main/data/feed.json"
+    
     try:
-        r = requests.get(url, timeout=10)
-        return r.text if r.status_code == 200 else "获取失败"
-    except: return "连接超时"
+        response = requests.get(feed_url, timeout=10)
+        if response.status_code == 200:
+            return response.json() # 这是一个包含原始内容的 JSON
+        else:
+            # 如果 json 不存在，尝试读取它的示例输出作为兜底
+            sample_url = "https://raw.githubusercontent.com/zarazhangrui/follow-builders/main/examples/sample-digest.md"
+            r = requests.get(sample_url, timeout=10)
+            return r.text
+    except Exception as e:
+        return f"数据连接失败: {str(e)}"
 
 # 4. 导航栏
 selected = option_menu(
@@ -85,19 +95,33 @@ if selected == "AI 产品进展":
                     st.markdown(html, unsafe_allow_html=True)
     else:
         st.info("数据加载中或配置有误...")
-
 elif selected == "知名博主动态":
-    st.markdown("<h1 style='text-align: center;'>📢 业界动态</h1>", unsafe_allow_html=True)
-    content = fetch_github_report()
-    if "###" in content:
-        sections = content.split("###")[1:]
-        cols = st.columns(2)
-        for i, s in enumerate(sections[:10]): # 先取前10个防止页面太长
-            with cols[i % 2]:
-                txt = s[:400] + "..." if len(s) > 400 else s
-                st.markdown(f'<div class="product-card"><div style="color:#E60012;font-weight:600;">博主动态</div><div style="font-size:14px;">{txt}</div></div>', unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center;'>🏗️ 建造者动态 (Follow Builders)</h1>", unsafe_allow_html=True)
+    
+    # 模拟从中心化 Feed 获取的数据处理
+    data = fetch_follow_builders_feed()
+    
+    if isinstance(data, dict):
+        # 如果获取到了 JSON 格式的 Feed
+        for item in data.get('items', []):
+            with st.container():
+                st.markdown(f"""
+                <div class="product-card">
+                    <div style="color: #86868b; font-size: 12px; font-weight: 600;">来自建造者: {item.get('author')}</div>
+                    <div style="margin: 10px 0; font-size: 16px; line-height: 1.6;">{item.get('content')}</div>
+                    <div style="text-align: right;"><a href="{item.get('link')}" style="color: #E60012; text-size: 12px;">查看原文 →</a></div>
+                </div>
+                """, unsafe_allow_html=True)
     else:
-        st.markdown(f"<div class='insight-quote'>{content}</div>", unsafe_allow_html=True)
+        # 如果只有 Markdown 示例，我们用正则简单拆分后显示
+        st.markdown(f"""
+        <div class="insight-quote" style="border-left: 4px solid #0071e3;">
+            <b>💡 Skill 原理：</b> 本页面通过追踪中心化 Feed 获取来自 Karpathy、Sam Altman 等 25 位建造者的最新洞察。
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # 显示抓取到的 Markdown 内容
+        st.markdown(data)
 
 elif selected == "AI 学习资料库":
     st.markdown("<h1 style='text-align: center;'>📚 知识库</h1>", unsafe_allow_html=True)

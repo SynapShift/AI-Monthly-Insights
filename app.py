@@ -174,7 +174,7 @@ elif selected == "知名博主动态":
             for pod in pod_list[:8]:
                 raw_transcript = pod.get('transcript', '')
                 clean_summary = re.sub(r'Speaker \d+ \| \d+:\d+ - \d+:\d+', '', raw_transcript)
-                clean_summary = html.escape(clean_summary.strip())[:500] + "..."
+                clean_summary = html.escape(clean_summary.strip())[:1000] + "..."
                 pub_date = str(pod.get('publishedAt', ''))[:10] or "2026-04-10"
                 
                 st.markdown(f"""
@@ -201,7 +201,7 @@ elif selected == "知名博主动态":
             for blog in blog_list[:8]:
                 raw_date = blog.get('publishedAt') or blog.get('date')
                 date_str = str(raw_date)[:10] if raw_date else "2026-04-19"
-                clean_blog = html.unescape(blog.get('content', blog.get('description', '')))[:500] + "..."
+                clean_blog = html.unescape(blog.get('content', blog.get('description', '')))[:1000] + "..."
                 
                 st.markdown(f"""
                 <div class="product-card">

@@ -73,66 +73,32 @@ selected = option_menu(
 )
 
 # 5. 路由逻辑 (严格对齐)
-# if selected == "AI 产品进展":
-#     df = load_data()
-#     st.markdown("<h1 style='text-align: center;'>🚀 AI 产品进展</h1>", unsafe_allow_html=True)
-#     if not df.empty:
-#         cols_per_row = 3
-#         for i in range(0, len(df), cols_per_row):
-    #         batch = df.iloc[i : i + cols_per_row]
-    #         cols = st.columns(cols_per_row)
-    #         for idx, (index, row) in enumerate(batch.iterrows()):
-    #             with cols[idx]:
-    #                 html = f"""
-    #                 <div class="product-card">
-    #                     <div style="font-size:12px;color:#86868b;">{row.get('公司','-')} | {row.get('日期','-')}</div>
-    #                     <h2 style="font-size:20px;">{row.get('进展','-')}</h2>
-    #                     <div style="margin:10px 0;"><span class="tag tag-highlight">{row.get('分类','-')}</span></div>
-    #                     <p style="font-size:14px;color:#424245;height:60px;overflow:hidden;">{row.get('核心特点','-')}</p>
-    #                     <div class="insight-quote"><b>反馈:</b> {row.get('市场反响','-')}</div>
-    #                 </div>
-    #                 """
-    #                 st.markdown(html, unsafe_allow_html=True)
-    # else:
-    #     st.info("数据加载中或配置有误...")
+if selected == "AI 产品进展":
+    df = load_data()
+    st.markdown("<h1 style='text-align: center;'>🚀 AI 产品进展</h1>", unsafe_allow_html=True)
+    if not df.empty:
+        cols_per_row = 3
+        for i in range(0, len(df), cols_per_row):
+            batch = df.iloc[i : i + cols_per_row]
+            cols = st.columns(cols_per_row)
+            for idx, (index, row) in enumerate(batch.iterrows()):
+                with cols[idx]:
+                    html = f"""
+                    <div class="product-card">
+                        <div style="font-size:12px;color:#86868b;">{row.get('公司','-')} | {row.get('日期','-')}</div>
+                        <h2 style="font-size:20px;">{row.get('进展','-')}</h2>
+                        <div style="margin:10px 0;"><span class="tag tag-highlight">{row.get('分类','-')}</span></div>
+                        <p style="font-size:14px;color:#424245;height:60px;overflow:hidden;">{row.get('核心特点','-')}</p>
+                        <div class="insight-quote"><b>反馈:</b> {row.get('市场反响','-')}</div>
+                    </div>
+                    """
+                    st.markdown(html, unsafe_allow_html=True)
+    else:
+        st.info("数据加载中或配置有误...")
 
 if selected == "AI 产品进展":
     st.markdown("<h1 style='text-align: center; margin-top: 20px;'>🚀 AI 产品进展</h1>", unsafe_allow_html=True)
     
-    if not df.empty:
-        # 极简筛选器
-        with st.container():
-            c1, c2, c3 = st.columns(3)
-            with c1: month_filter = st.multiselect("时间", options=df['选择月份'].unique())
-            with c2: category_filter = st.multiselect("分类", options=df['分类'].unique())
-            with c3: company_filter = st.multiselect("公司", options=df['公司'].unique())
-
-        filtered_df = df.copy()
-        if month_filter: filtered_df = filtered_df[filtered_df['选择月份'].isin(month_filter)]
-        if category_filter: filtered_df = filtered_df[filtered_df['分类'].isin(category_filter)]
-        if company_filter: filtered_df = filtered_df[filtered_df['公司'].isin(company_filter)]
-
-        # 瀑布流布局
-        for _, row in filtered_df.iterrows():
-            st.markdown(f"""
-            <div class="product-card">
-                <div style="display: flex; justify-content: space-between;">
-                    <span style="font-size: 13px; color: #86868b; font-weight: 600;">{row['公司']}</span>
-                    <span style="color: #86868b; font-size: 13px;">{row['日期']}</span>
-                </div>
-                <h2 style="margin: 8px 0; font-size: 24px;">{row['进展']}</h2>
-                <div style="margin-bottom: 15px;">
-                    <span class="tag tag-highlight">{row['分类']}</span>
-                    <span class="tag">{row['地域']}</span>
-                </div>
-                <p style="color: #1d1d1f; line-height: 1.5;">{row['核心特点']}</p>
-                <div class="insight-quote">
-                    <b>市场反馈：</b>{row['市场反响']}
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-    else:
-        st.warning("请检查数据配置...")
 
 
 ###知名博主

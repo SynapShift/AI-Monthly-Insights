@@ -211,31 +211,40 @@ elif selected == "知名博主动态":
                 </div>
                 """, unsafe_allow_html=True)
 
+
     with tab3:
         blog_list = data_feeds.get("Blogs", [])
         if blog_list:
             for blog in blog_list[:8]:
-                # 这里的 pub_date 逻辑保持，确保不会报错
-                pub_date = blog.get('publishedAt')
-                date_str = str(pub_date)[:10] if pub_date else "近期发布"
+                # 1. 尝试从多个可能的字段取日期
+                # 优先级：publishedAt > date > 抓取时间(generatedAt)
+                raw_date = blog.get('publishedAt') or blog.get('date')
                 
+                if raw_date:
+                    # 转换格式：处理类似 2026-04-10T... 或直接是日期字符串的情况
+                    date_str = str(raw_date)[:10] 
+                else:
+                    # 如果博客本身没日期，尝试用整个文件的生成时间
+                    date_str = data_feeds.get("generatedAt", "2026-04-19")[:10]
+    
                 clean_blog = html.unescape(blog.get('content', blog.get('description', '')))[:200] + "..."
     
                 st.markdown(f"""
                 <div class="product-card">
-                    <div style="display:flex; justify-content:space-between;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
                         <span class="tag" style="background-color:#E8F2FF; color:#0071E3;">{blog.get('name', 'Official Blog')}</span>
-                        <span class="date-text" style="color:#86868b; font-size:11px;">📅 {date_str}</span>
+                        <span style="color:#86868b; font-size:11px; font-weight:500;">📅 {date_str}</span>
                     </div>
-                    <h4 style="margin:10px 0;">{blog.get('title')}</h4>
-                    <p style="font-size:13px; color:#424245;">{clean_blog}</p>
-                    <div style="margin-top:10px; text-align:right; border-top:1px solid #F5F5F7; padding-top:8px;">
-                        <a href="{blog.get('url','#')}" target="_blank" style="color:#0071e3; font-size:12px;">阅读全文 →</a>
+                    <h4 style="margin:12px 0 8px 0; font-size:16px; line-height:1.4;">{blog.get('title')}</h4>
+                    <p style="font-size:13px; color:#424245; line-height:1.6;">{clean_blog}</p>
+                    <div style="margin-top:12px; text-align:right; border-top:1px solid #F5F5F7; padding-top:10px;">
+                        <a href="{blog.get('url','#')}" target="_blank" style="color:#0071e3; font-size:12px; text-decoration:none; font-weight:600;">阅读全文 →</a>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
 
 
+ 
 
 
   

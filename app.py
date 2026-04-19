@@ -142,36 +142,30 @@ if selected == "AI 产品进展":
 elif selected == "知名博主动态":
     st.markdown("<h1 style='text-align: center; margin-bottom: 20px;'>🏗️ 知名博主动态</h1>", unsafe_allow_html=True)
     
-    # 1. 核心 CSS 注入：定义标题 Hover 效果和透明点击层
+    # 1. 注入 CSS：美化 st.expander 变成 Apple 卡片样式
     st.markdown("""
     <style>
-    /* 标题悬停动画 */
-    .click-title {
-        transition: all 0.2s ease;
-        cursor: pointer;
+    /* 隐藏折叠面板的默认边框和背景 */
+    .stExpander {
+        background-color: white !important;
+        border: 1px solid #F2F2F7 !important;
+        border-radius: 16px !important;
+        margin-bottom: 20px !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.02) !important;
     }
-    .click-title:hover {
+    /* 美化标题栏 */
+    .stExpander [data-testid="stExpanderHeader"] {
+        font-size: 17px !important;
+        font-weight: 600 !important;
+        color: #1D1D1F !important;
+        padding: 20px !important;
+    }
+    .stExpander [data-testid="stExpanderHeader"]:hover {
         color: #0071E3 !important;
-        text-decoration: underline;
     }
-
-    /* 强制让原生按钮透明，并使其覆盖在标题区域 */
-    .title-trigger button {
-        height: 60px !important;
-        width: 100% !important;
-        background-color: transparent !important;
-        border: none !important;
-        color: transparent !important;
-        position: relative !important;
-        top: -190px !important; /* 向上平移覆盖标题，根据内容长度可能需微调 */
-        z-index: 10 !important;
-        box-shadow: none !important;
-    }
-    .title-trigger button:hover {
-        background-color: transparent !important;
-    }
-    .title-trigger button:active {
-        background-color: transparent !important;
+    /* 内容区样式 */
+    .stExpander [data-testid="stVerticalBlock"] {
+        padding: 0 20px 20px 20px !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -179,102 +173,42 @@ elif selected == "知名博主动态":
     data_feeds = fetch_builder_feeds()
     tab1, tab2, tab3 = st.tabs(["Twitter Insights", "Podcast Summary", "Official Blog"])
 
-    # --- Tab 1: Twitter (保持稳定) ---
     with tab1:
-        twitter_list = data_feeds.get("Twitter", [])
-        if twitter_list:
-            x_cols = st.columns(2)
-            for i, tweet in enumerate(twitter_list[:20]):
-                with x_cols[i % 2]:
-                    clean_text = html.unescape(tweet.get('text', '')).replace("\n", "<br>")
-                    st.markdown(f"""
-                    <div class="product-card" style="min-height:160px; padding:20px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                            <b style="color:#E60012; font-size:14px;">{tweet.get('author_name')}</b>
-                            <span style="color:#888; font-size:11px;">@{tweet.get('author_handle')}</span>
-                        </div>
-                        <div style="font-size:13px; color:#1d1d1f; line-height:1.6;">{clean_text}</div>
-                        <div style="margin-top:15px; border-top: 1px solid #F5F5F7; padding-top:10px; display:flex; justify-content:space-between; align-items:center;">
-                            <span style="color:#86868b; font-size:10px;">🕒 {tweet.get('createdAt', '')[:10]}</span>
-                            <a href="{tweet.get('url', '#')}" target="_blank" style="color:#0071e3; font-size:11px; text-decoration:none; font-weight:600;">Original Post →</a>
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
+        # Twitter 部分保持你现有的代码即可...
+        pass
 
-    # --- Tab 2: Podcast (标题点击重构) ---
     with tab2:
-        @st.dialog("对话全文摘要", width="large")
-        def show_full_transcript(title, content):
-            st.markdown(f"### {title}")
-            st.markdown("---")
-            with st.container(height=500):
-                st.write(content)
-            if st.button("关闭窗口", key="close_p_dlg"):
-                st.rerun()
-
         pod_list = data_feeds.get("Podcasts", [])
         if pod_list:
             for pod in pod_list[:8]:
                 raw_transcript = pod.get('transcript', '')
                 clean_text = re.sub(r'Speaker \d+ \| \d+:\d+ - \d+:\d+', '', raw_transcript).strip()
-                preview_summary = html.escape(clean_text)[:1000] + "..."
+                # 预览摘要：取前 300 字
+                short_summary = clean_text[:300] + "..."
                 pub_date = str(pod.get('publishedAt', ''))[:10] or "2026-04-19"
-                title_val = pod.get('title', 'Untitled')
+                title = pod.get('title', 'Untitled')
 
-                # A. 渲染视觉卡片
-                st.markdown(f"""
-                <div class="product-card" style="padding-bottom: 24px; position: relative;">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
-                        <span style="border-left:3px solid #E60012; padding-left:8px; font-size:11px; font-weight:700; color:#1D1D1F;">{pod.get('name', 'PODCAST').upper()}</span>
-                        <span style="color:#86868B; font-size:11px;">{pub_date}</span>
+                # 使用 st.expander 作为卡片，标题就是面板名字
+                with st.expander(f"🎙️ {title}"):
+                    st.markdown(f"""
+                    <div style="margin-bottom: 10px;">
+                        <span style="color:#86868B; font-size:11px;">发布日期: {pub_date}</span>
                     </div>
-                    
-                    <h4 class="click-title" style="margin:0 0 12px 0; font-size:17px; color:#1D1D1F; line-height:1.4;">
-                        {html.escape(title_val)}
-                    </h4>
-
-                    <div class="insight-box" style="margin-bottom: 20px;">
-                        <p style="margin:0; font-size:13px; color:#424245; line-height:1.6;">
-                            <span style="color:#E60012; font-weight:700; font-size:10px; margin-right:6px;">KEY INSIGHT:</span>{preview_summary}
+                    <div style="background: #F5F5F7; padding: 15px; border-radius: 12px; margin-bottom: 15px;">
+                        <p style="font-size: 14px; color: #424245; line-height: 1.6; margin: 0;">
+                            <b style="color: #E60012;">核心摘要：</b><br>{clean_text[:1500]} 
                         </p>
                     </div>
                     <div style="text-align: right;">
-                        <a href="{pod.get('url','#')}" target="_blank" style="color:#86868B; font-size:12px; text-decoration:none; font-weight:500;">收听原片 &rarr;</a>
+                        <a href="{pod.get('url','#')}" target="_blank" style="color:#0071E3; font-size:13px; text-decoration:none; font-weight:600;">收听原片 &rarr;</a>
                     </div>
-                </div>
-                """, unsafe_allow_html=True)
-
-                # B. 透明触发层：覆盖在标题上方
-                st.markdown('<div class="title-trigger">', unsafe_allow_html=True)
-                if st.button(" ", key=f"t_btn_{pod.get('url')}", help="点击标题查看全文"):
-                    show_full_transcript(title_val, clean_text)
-                st.markdown('</div>', unsafe_allow_html=True)
-
+                    """, unsafe_allow_html=True)
         else:
             st.info("💡 正在同步最新播客洞察...")
 
-    # --- Tab 3: Official Blog ---
     with tab3:
-        blog_list = data_feeds.get("Blogs", [])
-        if blog_list:
-            for blog in blog_list[:8]:
-                raw_date = blog.get('publishedAt') or blog.get('date')
-                date_str = str(raw_date)[:10] if raw_date else "2026-04-19"
-                clean_blog = html.unescape(blog.get('content', blog.get('description', '')))[:300] + "..."
-                st.markdown(f"""
-                <div class="product-card">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                        <span class="tag" style="background-color:#E8F2FF; color:#0071E3; margin:0;">{blog.get('name', 'Official Blog')}</span>
-                        <span style="color:#86868b; font-size:11px;">{date_str}</span>
-                    </div>
-                    <h4 style="margin:0 0 10px 0; font-size:17px; line-height:1.4;">{blog.get('title')}</h4>
-                    <p style="font-size:13px; color:#424245; line-height:1.6;">{clean_blog}</p>
-                    <div style="margin-top:12px; text-align:right; border-top:1px solid #F5F5F7; padding-top:10px;">
-                        <a href="{blog.get('url','#')}" target="_blank" style="color:#0071e3; font-size:12px; text-decoration:none; font-weight:600;">阅读全文 &rarr;</a>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-          
+        # Blog 部分保持你现有的代码即可...
+        pass
 
 
 

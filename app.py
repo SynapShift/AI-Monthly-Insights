@@ -159,7 +159,7 @@ if selected == "AI 产品进展":
 # 修改后的页面渲染部分
 # --- 页面 2: 知名博主动态 ---
 elif selected == "知名博主动态":
-    st.markdown("<h1 style='text-align: center; margin-bottom: 20px;'>🏗️ 建造者动态</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center; margin-bottom: 20px;'>🏗️ 知名博主动态</h1>", unsafe_allow_html=True)
     
     data_feeds = fetch_builder_feeds()
     tab1, tab2, tab3 = st.tabs(["🐦 Twitter 洞察", "🎧 播客摘要", "📝 官方博客"])
@@ -173,12 +173,19 @@ elif selected == "知名博主动态":
                     # 修复乱码与换行
                     clean_text = html.unescape(tweet.get('text', '')).replace("\n", "<br>")
                     st.markdown(f"""
-                    <div class="product-card" style="min-height:160px;">
-                        <b style="color:#E60012;">{tweet.get('author_name')}</b> <span style="color:#888; font-size:11px;">@{tweet.get('author_handle')}</span>
-                        <div style="font-size:13px; margin-top:10px;">{clean_text}</div>
-                        <div style="margin-top:10px; text-align:right;"><a href="{tweet.get('url','#')}" target="_blank" style="color:#0071e3; font-size:11px;">原文 →</a></div>
+                    <div class="product-card" style="min-height:160px; padding:20px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                            <b style="color:#E60012; font-size:14px;">{tweet.get('author_name')}</b>
+                            <span style="color:#888; font-size:11px;">@{tweet.get('author_handle')}</span>
+                        </div>
+                        <div style="font-size:13px; color:#1d1d1f; line-height:1.6;">{clean_text}</div>
+                        <div style="margin-top:15px; border-top: 1px solid #F5F5F7; padding-top:10px; display:flex; justify-content:space-between; align-items:center;">
+                            <span style="color:#86868b; font-size:10px;">🕒 {tweet.get('createdAt', '')[:10]}</span>
+                            <a href="{tweet.get('url', '#')}" target="_blank" style="color:#0071e3; font-size:11px; text-decoration:none;">查看原文 →</a>
+                        </div>
                     </div>
                     """, unsafe_allow_html=True)
+
 
     with tab2:
         pod_list = data_feeds.get("Podcasts", [])
@@ -208,19 +215,17 @@ elif selected == "知名博主动态":
         blog_list = data_feeds.get("Blogs", [])
         if blog_list:
             for blog in blog_list[:8]:
-                # 修复日期报错逻辑
+                # 这里的 pub_date 逻辑保持，确保不会报错
                 pub_date = blog.get('publishedAt')
                 date_str = str(pub_date)[:10] if pub_date else "近期发布"
                 
-                # 博客内容清洗
-                blog_content = blog.get('content', blog.get('description', ''))
-                clean_blog = html.unescape(blog_content)[:200] + "..."
-
+                clean_blog = html.unescape(blog.get('content', blog.get('description', '')))[:200] + "..."
+    
                 st.markdown(f"""
                 <div class="product-card">
                     <div style="display:flex; justify-content:space-between;">
                         <span class="tag" style="background-color:#E8F2FF; color:#0071E3;">{blog.get('name', 'Official Blog')}</span>
-                        <span class="date-text">{date_str}</span>
+                        <span class="date-text" style="color:#86868b; font-size:11px;">📅 {date_str}</span>
                     </div>
                     <h4 style="margin:10px 0;">{blog.get('title')}</h4>
                     <p style="font-size:13px; color:#424245;">{clean_blog}</p>
@@ -229,6 +234,11 @@ elif selected == "知名博主动态":
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
+
+
+
+
+  
   
      
 

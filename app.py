@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import requests
-from streamlit_gsheets import GSheetsConnection
 from streamlit_option_menu import option_menu
 
 # ================= 1. 基础配置与 Apple 风格样式 =================
@@ -12,10 +11,20 @@ st.markdown("""
 #MainMenu, header, footer {visibility: hidden;}
 .block-container {padding-top: 2rem;}
 .stApp {background-color: #FFFFFF;}
-/* 筛选器容器 */
-.filter-container { background-color: #F5F5F7; padding: 20px; border-radius: 12px; margin-bottom: 25px; }
+
+/* 调整筛选器间距 */
+.stMultiSelect { margin-bottom: 20px; }
+
 /* 产品卡片样式 */
-.product-card {background-color: #FFFFFF; border: 1px solid #F2F2F2; padding: 24px; border-radius: 12px; margin-bottom: 20px; transition: all 0.3s ease; min-height: 250px;}
+.product-card {
+    background-color: #FFFFFF; 
+    border: 1px solid #F2F2F2; 
+    padding: 24px; 
+    border-radius: 12px; 
+    margin-bottom: 20px; 
+    transition: all 0.3s ease; 
+    min-height: 250px;
+}
 .product-card:hover {box-shadow: 0 8px 24px rgba(0,0,0,0.05);}
 .tag {display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; margin-right: 8px; background-color: #F5F5F7; color: #1D1D1F;}
 .tag-highlight {background-color: #E60012; color: white;}
@@ -30,7 +39,7 @@ def load_data():
     if not full_url:
         return pd.DataFrame()
     try:
-        # 降级方案：使用 CSV 导出链接，避免插件版本冲突
+        # 直接使用 CSV 导出链接，稳定性最高
         if "/edit" in full_url:
             csv_url = full_url.split("/edit")[0] + "/export?format=csv"
         else:
@@ -41,7 +50,6 @@ def load_data():
 
 @st.cache_data(ttl=3600)
 def fetch_github_content():
-    # 优先获取示例内容进行展示，后续可改为真实动态路径
     url = "https://raw.githubusercontent.com/zarazhangrui/follow-builders/main/examples/sample-digest.md"
     try:
         r = requests.get(url, timeout=10)
@@ -56,22 +64,20 @@ selected = option_menu(
     icons=["rocket-takeoff", "person-badge", "book"],
     orientation="horizontal",
     styles={
-        "container": {"background-color": "#fbfbfd"},
+        "container": {"background-color": "transparent"},
         "nav-link-selected": {"background-color": "#E60012", "color": "white"}
     }
 )
 
 # ================= 4. 路由逻辑 =================
 
-# --- 页面 1: AI 产品进展 ---
 if selected == "AI 产品进展":
-    st.markdown("<h1 style='text-align: center; margin-bottom: 20px;'>🚀 AI 产品进展</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center; margin-bottom: 30px;'>🚀 AI 产品进展</h1>", unsafe_allow_html=True)
     
     df = load_data()
     
     if not df.empty:
-        # --- 补回筛选逻辑 ---
-        st.markdown('<div class="filter-container">', unsafe_allow_html=True)
+        # 直接在页面顶部放置筛选器，去掉了背景块
         c1, c2, c3 = st.columns(3)
         with c1:
             month_list = sorted(df['选择月份'].unique()) if '选择月份' in df.columns else []
@@ -82,9 +88,8 @@ if selected == "AI 产品进展":
         with c3:
             comp_list = sorted(df['公司'].unique()) if '公司' in df.columns else []
             company_filter = st.multiselect("🏢 所属公司", options=comp_list)
-        st.markdown('</div>', unsafe_allow_html=True)
 
-        # 执行过滤
+        # 过滤逻辑
         filtered_df = df.copy()
         if month_filter:
             filtered_df = filtered_df[filtered_df['选择月份'].isin(month_filter)]
@@ -93,6 +98,8 @@ if selected == "AI 产品进展":
         if company_filter:
             filtered_df = filtered_df[filtered_df['公司'].isin(company_filter)]
 
+        st.markdown("<br>", unsafe_allow_html=True)
+
         # 网格展示
         cols_per_row = 3
         for i in range(0, len(filtered_df), cols_per_row):
@@ -100,7 +107,6 @@ if selected == "AI 产品进展":
             cols = st.columns(cols_per_row)
             for idx, (index, row) in enumerate(batch.iterrows()):
                 with cols[idx]:
-                    # 使用 HTML 拼接，确保样式精准
                     st.markdown(f"""
                     <div class="product-card">
                         <div style="font-size:12px;color:#86868b;font-weight:600;">{row.get('公司','-')} · {row.get('日期','-')}</div>
@@ -116,20 +122,18 @@ if selected == "AI 产品进展":
                     </div>
                     """, unsafe_allow_html=True)
     else:
-        st.info("💡 请在 Secrets 中配置 gsheet_url 并确保表格已发布。")
+        st.info("💡 请在 Secrets 中配置 gsheet_url。")
 
-# --- 页面 2: 知名博主动态 ---
 elif selected == "知名博主动态":
-    st.markdown("<h1 style='text-align: center; margin-bottom: 20px;'>🏗️ 建造者动态 (Follow Builders)</h1>", unsafe_allow_html=True)
-    st.markdown('<div class="insight-quote" style="border-left: 4px solid #0071e3;"><b>追踪逻辑：</b>聚合来自 Karpathy 等 25 位 Top Builder 及顶级播客的每日摘要。</div>', unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center; margin-bottom: 20px;'>🏗️ 建造者动态</h1>", unsafe_allow_html=True)
+    st.markdown('<div class="insight-quote" style="border-left: 4px solid #0071e3;"><b>追踪逻辑：</b>聚合顶级 Builder 及播客的每日摘要。</div>', unsafe_allow_html=True)
     
     raw_content = fetch_github_content()
     
     if "PODCASTS" in raw_content:
-        # 简单结构化渲染
         st.markdown("### 🎧 播客精选")
         pod_text = raw_content.split("PODCASTS")[1].split("X / TWITTER")[0]
-        st.markdown(f'<div class="product-card" style="background:#FBFBFD;">{pod_text}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="product-card">{pod_text}</div>', unsafe_allow_html=True)
         
         st.markdown("### 🐦 社交媒体洞察")
         x_text = raw_content.split("X / TWITTER")[1].split("Reply to")[0]
@@ -137,7 +141,6 @@ elif selected == "知名博主动态":
     else:
         st.markdown(raw_content)
 
-# --- 页面 3: 学习资料库 ---
 elif selected == "AI 学习资料库":
     st.markdown("<h1 style='text-align: center;'>📚 知识库</h1>", unsafe_allow_html=True)
-    st.info("内容同步中，敬请期待...")
+    st.info("内容同步中...")

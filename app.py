@@ -145,41 +145,52 @@ if selected == "AI 产品进展":
 elif selected == "知名博主动态":
     st.markdown("<h1 style='text-align: center; margin-bottom: 20px;'>🏗️ 知名博主动态</h1>", unsafe_allow_html=True)
     
-    # --- 1. CSS 仅作纯粹的颜色与倒角美化，彻底放弃强行定位 ---
+    # 1. 核心视觉样式表：实现按钮链接化、对齐及间距控制
     st.markdown("""
     <style>
-    /* 将 Streamlit 原生 Container 变成精致的 Apple 卡片 */
+    /* 容器美化 */
     [data-testid="stVerticalBlockBorderWrapper"] {
         border-radius: 16px !important;
         border-color: #F2F2F7 !important;
         box-shadow: 0 2px 8px rgba(0,0,0,0.03) !important;
-        background-color: #FFFFFF !important;
         padding: 20px !important;
-        margin-bottom: 16px !important;
+        background-color: #FFFFFF !important;
     }
-    
-    /* 美化"查看全文"的原生按钮 */
+
+    /* 将原生按钮彻底重塑为蓝色链接样式 */
     div[data-testid="stButton"] button {
-        background-color: #F5F5F7 !important;
+        background-color: transparent !important;
         color: #0071E3 !important;
         border: none !important;
-        border-radius: 8px !important;
-        font-weight: 600 !important;
-        font-size: 13px !important;
-        height: 36px !important;
-        padding: 0 16px !important;
-        min-height: 36px !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        font-size: 12px !important;
+        font-weight: 500 !important;
+        width: auto !important;
+        min-height: unset !important;
+        line-height: 1.5 !important;
+        box-shadow: none !important;
     }
     div[data-testid="stButton"] button:hover {
-        background-color: #E8E8ED !important;
+        text-decoration: underline !important;
+        background-color: transparent !important;
     }
-    
-    /* 右侧跳转链接的垂直居中容器 */
-    .link-wrap {
-        display: flex;
-        height: 36px;
-        align-items: center;
-        justify-content: flex-end;
+    div[data-testid="stButton"] button:focus {
+        background-color: transparent !important;
+        box-shadow: none !important;
+    }
+
+    /* 强制列容器内的内容向右对齐 */
+    [data-testid="column"] {
+        display: flex !important;
+        justify-content: flex-end !important;
+        align-items: center !important;
+    }
+
+    /* 链接对齐修正 */
+    .link-fix {
+        padding-left: 5px; /* 这里实现你要求的 5px 间距 */
+        margin-top: 2px;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -187,7 +198,7 @@ elif selected == "知名博主动态":
     data_feeds = fetch_builder_feeds()
     tab1, tab2, tab3 = st.tabs(["Twitter Insights", "Podcast Summary", "Official Blog"])
 
-    # --- Tab 1: Twitter (保持稳定) ---
+    # --- Tab 1: Twitter ---
     with tab1:
         twitter_list = data_feeds.get("Twitter", [])
         if twitter_list:
@@ -209,7 +220,7 @@ elif selected == "知名博主动态":
                     </div>
                     """, unsafe_allow_html=True)
 
-    # --- Tab 2: Podcast (核心重构：原生容器 + 原生分列) ---
+    # --- Tab 2: Podcast (核心重构：右对齐 + 5px 间距) ---
     with tab2:
         @st.dialog("对话全文摘要", width="large")
         def show_full_transcript(title, content):
@@ -217,7 +228,7 @@ elif selected == "知名博主动态":
             st.markdown("---")
             with st.container(height=500):
                 st.write(content)
-            if st.button("关闭窗口", key=f"close_{title}"):
+            if st.button("关闭窗口"):
                 st.rerun()
 
         pod_list = data_feeds.get("Podcasts", [])
@@ -225,35 +236,36 @@ elif selected == "知名博主动态":
             for pod in pod_list[:8]:
                 raw_transcript = pod.get('transcript', '')
                 clean_text = re.sub(r'Speaker \d+ \| \d+:\d+ - \d+:\d+', '', raw_transcript).strip()
+                # 预处理内容和标题，解决乱码
                 preview_summary = html.unescape(clean_text)[:1000] + "..."
+                title_clean = html.unescape(pod.get('title', 'Untitled'))
                 pub_date = str(pod.get('publishedAt', ''))[:10] or "2026-04-19"
-                title = html.unescape(pod.get('title', 'Untitled'))
 
-                # 1. 启动原生边框容器（所有内容被死死框在这里面，绝不割裂）
+                # 启动边框容器
                 with st.container(border=True):
-                    
-                    # 2. 纯展示信息（标题、日期、摘要块）
+                    # 渲染头部和正文
                     st.markdown(f"""
                     <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
                         <span style="border-left:3px solid #E60012; padding-left:8px; font-size:11px; font-weight:700; color:#1D1D1F;">{pod.get('name', 'PODCAST').upper()}</span>
                         <span style="color:#86868B; font-size:11px;">{pub_date}</span>
                     </div>
-                    <h4 style="margin:0 0 12px 0; font-size:17px; color:#1D1D1F; line-height:1.4;">{title}</h4>
-                    <div style="background: #F9F9FB; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+                    <h4 style="margin:0 0 12px 0; font-size:17px; color:#1D1D1F; line-height:1.4;">{title_clean}</h4>
+                    <div style="background: #F9F9FB; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
                         <p style="margin:0; font-size:13px; color:#424245; line-height:1.6;">
                             <span style="color:#E60012; font-weight:700; font-size:10px; margin-right:6px;">KEY INSIGHT:</span>{preview_summary}
                         </p>
                     </div>
                     """, unsafe_allow_html=True)
                     
-                    # 3. 底部交互区：左边弹窗按钮，右边外链，通过 Streamlit 原生列对齐
-                    c1, c2 = st.columns([1, 1])
-                    with c1:
-                        if st.button("阅读全文摘要", key=f"btn_{pod.get('url')}"):
-                            show_full_transcript(title, clean_text)
+                    # 底部交互：利用列布局将两者全部推向右边
+                    # c1 是弹性占位，c2 装按钮，c3 装外链
+                    c1, c2, c3 = st.columns([0.6, 0.22, 0.18])
                     with c2:
+                        if st.button("阅读全文摘要 ›", key=f"btn_{pod.get('url')}"):
+                            show_full_transcript(title_clean, clean_text)
+                    with c3:
                         st.markdown(f"""
-                        <div class="link-wrap">
+                        <div class="link-fix">
                             <a href="{pod.get('url','#')}" target="_blank" style="color:#86868B; font-size:12px; text-decoration:none; font-weight:500;">收听原片 ↗</a>
                         </div>
                         """, unsafe_allow_html=True)
@@ -261,7 +273,7 @@ elif selected == "知名博主动态":
         else:
             st.info("💡 正在同步最新播客洞察...")
 
-    # --- Tab 3: Official Blog (保持稳定) ---
+    # --- Tab 3: Official Blog ---
     with tab3:
         blog_list = data_feeds.get("Blogs", [])
         if blog_list:

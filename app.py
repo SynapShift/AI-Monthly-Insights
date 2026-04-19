@@ -187,29 +187,81 @@ elif selected == "知名博主动态":
                     """, unsafe_allow_html=True)
 
 
-    with tab2:
-        pod_list = data_feeds.get("Podcasts", [])
-        if pod_list:
-            for pod in pod_list[:8]:
-                # --- 文本清洗：去掉 "Speaker 1 | 00:00" 这种干扰信息 ---
-                raw_transcript = pod.get('transcript', '')
-                import re
-                # 正则去掉 Speaker 标识
-                clean_summary = re.sub(r'Speaker \d+ \| \d+:\d+ - \d+:\d+', '', raw_transcript)
-                clean_summary = clean_summary.strip()[:250] + "..."
-                
-                # 修复日期报错逻辑
-                pub_date = pod.get('publishedAt')
-                date_str = str(pub_date)[:10] if pub_date else "近期更新"
 
-                st.markdown(f"""
-                <div class="product-card" style="border-left: 4px solid #E60012;">
-                    <div style="font-size:12px;color:#86868b;">{pod.get('name')} · {date_str}</div>
-                    <h4 style="margin:10px 0;">{pod.get('title')}</h4>
-                    <div class="insight-quote"><b>对话要点：</b>{clean_summary}</div>
-                    <div style="margin-top:10px; text-align:right;"><a href="{pod.get('url','#')}" target="_blank" style="color:#0071e3; font-size:12px;">收听原文 →</a></div>
-                </div>
-                """, unsafe_allow_html=True)
+
+
+    with tab2:
+            pod_list = data_feeds.get("Podcasts", [])
+            if pod_list:
+                for pod in pod_list[:8]:
+                    # --- 1. 文本清洗与摘要提取 ---
+                    import re
+                    raw_transcript = pod.get('transcript', '')
+                    # 去掉 Speaker 标识符
+                    clean_summary = re.sub(r'Speaker \d+ \| \d+:\d+ - \d+:\d+', '', raw_transcript)
+                    clean_summary = clean_summary.strip()[:240] + "..."
+                    
+                    # --- 2. 时间处理 ---
+                    pub_date = pod.get('publishedAt')
+                    date_str = str(pub_date)[:10] if pub_date else "2026-04-10"
+    
+                    # --- 3. 渲染精致的卡片布局 ---
+                    st.markdown(f"""
+                    <div style="
+                        background: #FFFFFF; 
+                        border: 1px solid #F2F2F7; 
+                        border-radius: 16px; 
+                        padding: 24px; 
+                        margin-bottom: 20px;
+                        box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+                    ">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-size: 16px;">🎙️</span>
+                                <span style="color: #1D1D1F; font-size: 12px; font-weight: 600; letter-spacing: 0.3px;">
+                                    {pod.get('name', 'PODCAST').upper()}
+                                </span>
+                            </div>
+                            <span style="color: #86868B; font-size: 11px; font-family: -apple-system, sans-serif;">
+                                {date_str}
+                            </span>
+                        </div>
+    
+                        <h4 style="margin: 0 0 12px 0; font-size: 17px; color: #1D1D1F; line-height: 1.4; font-weight: 600;">
+                            {pod.get('title')}
+                        </h4>
+    
+                        <div style="
+                            background-color: #FBFBFD; 
+                            padding: 16px; 
+                            border-radius: 10px; 
+                            border: 1px solid #F2F2F7;
+                            margin-bottom: 16px;
+                        ">
+                            <p style="margin: 0; font-size: 13px; color: #424245; line-height: 1.6; font-style: normal;">
+                                <span style="color: #E60012; font-weight: 600; font-size: 11px; margin-right: 4px;">KEY INSIGHT:</span>
+                                {clean_summary}
+                            </p>
+                        </div>
+    
+                        <div style="display: flex; justify-content: flex-end; align-items: center; border-top: 1px solid #F2F2F7; padding-top: 12px;">
+                            <a href="{pod.get('url','#')}" target="_blank" style="
+                                color: #0071E3; 
+                                font-size: 12px; 
+                                text-decoration: none; 
+                                font-weight: 600;
+                                display: flex;
+                                align-items: center;
+                            ">
+                                查看对话全文 <span style="font-size: 14px; margin-left: 2px;">›</span>
+                            </a>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+            else:
+                st.info("💡 正在同步最新播客洞察...")
+
+
 
     with tab3:
         blog_list = data_feeds.get("Blogs", [])

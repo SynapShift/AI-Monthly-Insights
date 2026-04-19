@@ -145,52 +145,57 @@ if selected == "AI 产品进展":
 elif selected == "知名博主动态":
     st.markdown("<h1 style='text-align: center; margin-bottom: 20px;'>🏗️ 知名博主动态</h1>", unsafe_allow_html=True)
     
-    # 1. 核心视觉样式表：实现按钮链接化、对齐及间距控制
+    # 1. 样式校准：确保按钮文字和链接文字在像素级是一致的
     st.markdown("""
     <style>
-    /* 容器美化 */
+    /* 容器边框美化 */
     [data-testid="stVerticalBlockBorderWrapper"] {
         border-radius: 16px !important;
         border-color: #F2F2F7 !important;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.03) !important;
-        padding: 20px !important;
         background-color: #FFFFFF !important;
+        padding: 20px !important;
     }
 
-    /* 将原生按钮彻底重塑为蓝色链接样式 */
+    /* 按钮样式彻底重写：字体 12px，颜色与链接一致 */
     div[data-testid="stButton"] button {
         background-color: transparent !important;
-        color: #0071E3 !important;
+        color: #86868B !important; /* 统一使用次要链接灰色 */
         border: none !important;
         padding: 0 !important;
         margin: 0 !important;
-        font-size: 12px !important;
+        font-size: 12px !important; /* 字体调小 */
         font-weight: 500 !important;
         width: auto !important;
         min-height: unset !important;
         line-height: 1.5 !important;
         box-shadow: none !important;
+        text-transform: none !important;
     }
+    
+    /* 悬停效果：变蓝加下划线 */
     div[data-testid="stButton"] button:hover {
+        color: #0071E3 !important;
         text-decoration: underline !important;
-        background-color: transparent !important;
     }
-    div[data-testid="stButton"] button:focus {
-        background-color: transparent !important;
+
+    /* 消除点击时的焦点黑框 */
+    div[data-testid="stButton"] button:focus:not(:active) {
+        color: #86868B !important;
+        border: none !important;
         box-shadow: none !important;
     }
 
-    /* 强制列容器内的内容向右对齐 */
+    /* 右对齐控制 */
     [data-testid="column"] {
         display: flex !important;
         justify-content: flex-end !important;
         align-items: center !important;
     }
 
-    /* 链接对齐修正 */
+    /* 链接与按钮之间的 5px 间距 */
     .link-fix {
-        padding-left: 5px; /* 这里实现你要求的 5px 间距 */
-        margin-top: 2px;
+        margin-left: 5px;
+        padding-top: 1px; /* 修正基线对齐 */
     }
     </style>
     """, unsafe_allow_html=True)
@@ -220,7 +225,7 @@ elif selected == "知名博主动态":
                     </div>
                     """, unsafe_allow_html=True)
 
-    # --- Tab 2: Podcast (核心重构：右对齐 + 5px 间距) ---
+    # --- Tab 2: Podcast ---
     with tab2:
         @st.dialog("对话全文摘要", width="large")
         def show_full_transcript(title, content):
@@ -236,31 +241,28 @@ elif selected == "知名博主动态":
             for pod in pod_list[:8]:
                 raw_transcript = pod.get('transcript', '')
                 clean_text = re.sub(r'Speaker \d+ \| \d+:\d+ - \d+:\d+', '', raw_transcript).strip()
-                # 预处理内容和标题，解决乱码
                 preview_summary = html.unescape(clean_text)[:1000] + "..."
                 title_clean = html.unescape(pod.get('title', 'Untitled'))
                 pub_date = str(pod.get('publishedAt', ''))[:10] or "2026-04-19"
 
-                # 启动边框容器
                 with st.container(border=True):
-                    # 渲染头部和正文
                     st.markdown(f"""
                     <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
                         <span style="border-left:3px solid #E60012; padding-left:8px; font-size:11px; font-weight:700; color:#1D1D1F;">{pod.get('name', 'PODCAST').upper()}</span>
                         <span style="color:#86868B; font-size:11px;">{pub_date}</span>
                     </div>
                     <h4 style="margin:0 0 12px 0; font-size:17px; color:#1D1D1F; line-height:1.4;">{title_clean}</h4>
-                    <div style="background: #F9F9FB; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
+                    <div style="background: #F9F9FB; padding: 12px; border-radius: 8px; margin-bottom: 12px;">
                         <p style="margin:0; font-size:13px; color:#424245; line-height:1.6;">
                             <span style="color:#E60012; font-weight:700; font-size:10px; margin-right:6px;">KEY INSIGHT:</span>{preview_summary}
                         </p>
                     </div>
                     """, unsafe_allow_html=True)
                     
-                    # 底部交互：利用列布局将两者全部推向右边
-                    # c1 是弹性占位，c2 装按钮，c3 装外链
-                    c1, c2, c3 = st.columns([0.6, 0.22, 0.18])
+                    # 底部交互区：c2 和 c3 紧密排列
+                    c1, c2, c3 = st.columns([0.6, 0.25, 0.15])
                     with c2:
+                        # 现在的按钮长得跟链接一模一样
                         if st.button("阅读全文摘要 ›", key=f"btn_{pod.get('url')}"):
                             show_full_transcript(title_clean, clean_text)
                     with c3:
@@ -294,6 +296,8 @@ elif selected == "知名博主动态":
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
+   
+
 
 
 elif selected == "AI 学习资料库":

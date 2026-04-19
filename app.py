@@ -1,5 +1,7 @@
 import streamlit as st
 import pandas as pd
+import requests
+import re
 from streamlit_gsheets import GSheetsConnection
 from streamlit_option_menu import option_menu  # 需要安装: pip install streamlit-option-menu
 

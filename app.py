@@ -143,32 +143,43 @@ if selected == "AI 产品进展":
 elif selected == "知名博主动态":
     st.markdown("<h1 style='text-align: center; margin-bottom: 20px;'>🏗️ 知名博主动态</h1>", unsafe_allow_html=True)
     
-    # 注入全局 CSS：隐藏原生按钮边框，优化卡片悬停效果
+    # 【1. 全局样式注入】让原生按钮彻底“伪装”成文字链接
     st.markdown("""
     <style>
-    /* 让透明按钮覆盖在卡片上 */
-    .invisible-btn button {
-        height: 100% !important;
-        width: 100% !important;
+    /* 移除按钮所有背景和边框，仅保留文字颜色 */
+    div[data-testid="stButton"] button {
         background-color: transparent !important;
         border: none !important;
-        color: transparent !important;
-        position: absolute !important;
-        top: 0;
-        left: 0;
-        z-index: 10;
+        color: #0071E3 !important;
+        font-size: 12px !important;
+        font-weight: 500 !important;
+        padding: 0 !important;
+        height: auto !important;
+        min-height: unset !important;
+        box-shadow: none !important;
+        text-align: right !important;
+        width: auto !important;
+        display: inline-flex !important;
     }
-    .invisible-btn button:hover {
-        background-color: rgba(0,0,0,0.02) !important;
+    div[data-testid="stButton"] button:hover {
+        text-decoration: underline !important;
+        background-color: transparent !important;
+        color: #0071E3 !important;
     }
-    /* 调整 tab 间距 */
-    .stTabs [data-baseweb="tab-list"] { gap: 24px; }
+    /* 修正列间距，让按钮靠右对齐 */
+    [data-testid="column"] {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        align-items: flex-end;
+    }
     </style>
     """, unsafe_allow_html=True)
     
     data_feeds = fetch_builder_feeds()
     tab1, tab2, tab3 = st.tabs(["Twitter Insights", "Podcast Summary", "Official Blog"])
 
+    # --- Tab 1: Twitter ---
     with tab1:
         twitter_list = data_feeds.get("Twitter", [])
         if twitter_list:
@@ -190,66 +201,75 @@ elif selected == "知名博主动态":
                     </div>
                     """, unsafe_allow_html=True)
 
+    # --- Tab 2: Podcast (重点修复区) ---
     with tab2:
-        # 定义弹窗函数
         @st.dialog("对话全文摘要", width="large")
         def show_full_transcript(title, content):
             st.markdown(f"### {title}")
             st.markdown("---")
             with st.container(height=500):
                 st.write(content)
-            if st.button("关闭窗口"):
+            if st.button("关闭", key="close_dialog"):
                 st.rerun()
 
         pod_list = data_feeds.get("Podcasts", [])
         if pod_list:
             for pod in pod_list[:8]:
-                # 1. 数据准备
                 raw_transcript = pod.get('transcript', '')
+                # 清洗 Speaker 信息
                 clean_text = re.sub(r'Speaker \d+ \| \d+:\d+ - \d+:\d+', '', raw_transcript).strip()
                 preview_summary = html.escape(clean_text)[:1000] + "..." # 延长至1000字
                 pub_date = str(pod.get('publishedAt', ''))[:10] or "2026-04-10"
                 title = pod.get('title', 'Untitled')
 
-                # 2. 渲染容器
-                with st.container():
-                    # 这里是视觉卡片层
-                    st.markdown(f"""
-                    <div class="product-card" style="position: relative; margin-bottom: 0px;">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
-                            <span style="border-left:3px solid #E60012; padding-left:8px; font-size:11px; font-weight:700; color:#1D1D1F;">{pod.get('name', 'PODCAST').upper()}</span>
-                            <span style="color:#86868B; font-size:11px;">{pub_date}</span>
-                        </div>
-                        <h4 style="margin:0 0 12px 0; font-size:17px; color:#1D1D1F; line-height:1.4;">{html.escape(title)}</h4>
-                        <div class="insight-box">
-                            <p style="margin:0; font-size:13px; color:#424245; line-height:1.6;">
-                                <span style="color:#E60012; font-weight:700; font-size:10px; margin-right:6px;">KEY INSIGHT:</span>{preview_summary}
-                            </p>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
-                            <span style="color: #0071E3; font-size: 11px; font-weight: 600;">点击卡片阅读全文摘要 &rsaquo;</span>
-                            <a href="{pod.get('url','#')}" target="_blank" style="color: #86868b; font-size: 11px; text-decoration: none; position: relative; z-index: 20;">收听原片 &rarr;</a>
-                        </div>
+                # A. 渲染卡片上半部分
+                st.markdown(f"""
+                <div class="product-card" style="margin-bottom: 0px; border-bottom: none; border-radius: 16px 16px 0 0; padding-bottom: 10px;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+                        <span style="border-left:3px solid #E60012; padding-left:8px; font-size:11px; font-weight:700; color:#1D1D1F;">{pod.get('name', 'PODCAST').upper()}</span>
+                        <span style="color:#86868B; font-size:11px;">{pub_date}</span>
                     </div>
-                    """, unsafe_allow_html=True)
+                    <h4 style="margin:0 0 12px 0; font-size:17px; color:#1D1D1F; line-height:1.4;">{html.escape(title)}</h4>
+                    <div class="insight-box">
+                        <p style="margin:0; font-size:13px; color:#424245; line-height:1.6;">
+                            <span style="color:#E60012; font-weight:700; font-size:10px; margin-right:6px;">KEY INSIGHT:</span>{preview_summary}
+                        </p>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
 
-                    # 3. 覆盖一个透明按钮层实现“全卡片点击”
-                    st.markdown('<div class="invisible-btn">', unsafe_allow_html=True)
-                    if st.button("", key=f"pod_click_{pod.get('url')}", use_container_width=True):
-                        show_full_transcript(title, clean_text)
-                    st.markdown('</div>', unsafe_allow_html=True)
+                # B. 渲染卡片下半部分 (操作行)
+                with st.container():
+                    # 模拟卡片底部的背景和边框
+                    st.markdown("""
+                    <div style="background: white; border-left: 1px solid #F2F2F7; border-right: 1px solid #F2F2F7; padding: 0 24px 10px 24px;">
+                    """, unsafe_allow_html=True)
+                    
+                    # 按钮对齐列
+                    c1, c2, c3 = st.columns([1.5, 1, 1])
+                    with c2:
+                        if st.button("查看全文摘要 ›", key=f"btn_{pod.get('url')}"):
+                            show_full_transcript(title, clean_text)
+                    with c3:
+                        st.markdown(f"""
+                            <a href="{pod.get('url','#')}" target="_blank" style="color:#86868B; font-size:12px; text-decoration:none; font-weight:500; display: inline-block; padding-bottom: 2px;">收听原片 &rarr;</a>
+                        """, unsafe_allow_html=True)
+                    
+                    st.markdown("</div>", unsafe_allow_html=True)
                 
-                st.markdown("<br>", unsafe_allow_html=True)
+                # C. 卡片封底圆角
+                st.markdown('<div style="height: 16px; border: 1px solid #F2F2F7; border-top: none; background: white; border-radius: 0 0 16px 16px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);"></div>', unsafe_allow_html=True)
         else:
             st.info("💡 正在同步最新播客洞察...")
 
+    # --- Tab 3: Official Blog ---
     with tab3:
         blog_list = data_feeds.get("Blogs", [])
         if blog_list:
             for blog in blog_list[:8]:
                 raw_date = blog.get('publishedAt') or blog.get('date')
                 date_str = str(raw_date)[:10] if raw_date else "2026-04-19"
-                clean_blog = html.unescape(blog.get('content', blog.get('description', '')))[:200] + "..."
+                clean_blog = html.unescape(blog.get('content', blog.get('description', '')))[:300] + "..."
                 st.markdown(f"""
                 <div class="product-card">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">

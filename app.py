@@ -110,24 +110,15 @@ st.markdown("""
 selected = option_menu(
     menu_title=None,
     options=["AI 产品进展", "知名博主动态", "AI 学习资料库"],
+    icons=["activity", "person", "book-half"],
     orientation="horizontal",
     styles={
-        "container": {"background-color": "transparent"}, # 透明背景
-        "nav-link": {
-            "font-size": "15px", 
-            "color": "#666", 
-            "border-bottom": "2px solid transparent", # 默认底边透明
-            "transition": "0.3s"
-        },
-        "nav-link-selected": {
-            "background-color": "transparent", # 选中也不要背景
-            "color": "#E60012", 
-            "font-weight": "bold",
-            "border-bottom": "2px solid #E60012" # 选中时显示红线
-        },
+        "container": {"background-color": "#1A1A1A", "border-radius": "0px"}, 
+        "icon": {"color": "#888", "font-size": "16px"}, 
+        "nav-link": {"color": "#eee", "font-size": "14px", "text-align": "center"},
+        "nav-link-selected": {"background-color": "#333", "color": "#E60012"},
     }
 )
-
 
 
 # ================= 数据获取 =================

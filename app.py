@@ -177,11 +177,56 @@ if selected == "AI 产品进展":
 
     else:
         st.warning("请检查数据配置...")
-
+#获取数据信息
+@st.cache_data(ttl=3600)  # 每小时缓存一次，避免频繁请求被 GitHub 封 IP
+def fetch_github_builders_report():
+    raw_url = "https://raw.githubusercontent.com/zarazhangrui/follow-builders/main/README.zh-CN.md"
+    try:
+        response = requests.get(raw_url)
+        if response.status_code == 200:
+            content = response.text
+            # 这里可以根据 README 的结构进行正则解析
+            # 假设我们要提取“每日更新”部分的内容
+            # 建议直接展示或简单清洗
+            return content
+        return "无法获取内容，请检查链接或网络。"
+    except Exception as e:
+        return f"发生错误: {e}"
+# elif selected == "知名博主动态":
+#     st.markdown("<h1 style='text-align: center; margin-top: 20px;'>📢 业界动态</h1>", unsafe_allow_html=True)
+#     # 此处保留原有的博主动态展示逻辑...
+#     st.info("博主动态加载中...")
 elif selected == "知名博主动态":
-    st.markdown("<h1 style='text-align: center; margin-top: 20px;'>📢 业界动态</h1>", unsafe_allow_html=True)
-    # 此处保留原有的博主动态展示逻辑...
-    st.info("博主动态加载中...")
+    st.markdown("<h1 style='text-align: center; margin-top: 20px;'>📢 业界动态：Follow Builders</h1>", unsafe_allow_html=True)
+    
+    report_content = fetch_github_builders_report()
+    
+    if "###" in report_content:
+        # 将内容按照日期或博主进行简单的切分展示
+        # 这里使用 Streamlit 的容器来保持你的苹果风设计
+        sections = report_content.split("###")[1:] # 假设 README 用 ### 分隔不同日期/博主
+        
+        # 同样采用 2-3 列的网格布局
+        cols_per_row = 2
+        for i in range(0, len(sections), cols_per_row):
+            row_data = sections[i : i + cols_per_row]
+            cols = st.columns(cols_per_row)
+            
+            for index, section in enumerate(row_data):
+                with cols[index]:
+                    st.markdown(f"""
+                    <div class="product-card">
+                        <div style="color: #E60012; font-weight: 600; font-size: 14px; margin-bottom: 10px;">推送更新</div>
+                        <div style="font-size: 14px; color: #1d1d1f; line-height: 1.6;">
+                            {section[:500] + '...' if len(section) > 500 else section}
+                        </div>
+                        <div style="margin-top: 15px; text-align: right;">
+                            <a href="https://github.com/zarazhangrui/follow-builders" target="_blank" style="color: #0066CC; text-decoration: none; font-size: 12px;">查看原文 →</a>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+    else:
+        st.markdown(f"<div class='insight-quote'>{report_content}</div>", unsafe_allow_html=True)    
 
 elif selected == "AI 学习资料库":
     st.markdown("<h1 style='text-align: center; margin-top: 20px;'>📚 知识库</h1>", unsafe_allow_html=True)

@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import requests
-from streamlit_gsheets import GSheetsConnection
+
 from streamlit_option_menu import option_menu
 
 # 1. 基础配置
@@ -21,14 +21,29 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # 3. 数据函数定义
+
+
 @st.cache_data(ttl=600)
 def load_data():
-    gsheet_url = st.secrets.get("gsheet_url", "")
-    if not gsheet_url: return pd.DataFrame()
+    # 从 Secrets 获取你的表格链接
+    full_url = st.secrets.get("gsheet_url", "")
+    if not full_url:
+        st.error("请在 Secrets 中配置 gsheet_url")
+        return pd.DataFrame()
+    
     try:
-        conn = st.connection("gsheets", type=GSheetsConnection)
-        return conn.read(spreadsheet=gsheet_url)
-    except: return pd.DataFrame()
+        # 核心逻辑：将普通 Google Sheet 链接转为 CSV 下载链接
+        # 这样就不需要任何额外的安装包了
+        if "/edit" in full_url:
+            csv_url = full_url.split("/edit")[0] + "/export?format=csv"
+            # 如果有多个 sheet，可以在后面加 &gid=xxxx
+        else:
+            csv_url = full_url
+            
+        return pd.read_csv(csv_url)
+    except Exception as e:
+        st.error(f"表格读取失败: {e}")
+        return pd.DataFrame()
 
 @st.cache_data(ttl=3600)
 def fetch_github_report():

@@ -6,14 +6,13 @@ import urllib.parse
 st.set_page_config(
     page_title="AI Sentinel · 智能瞭望台",
     layout="wide",
-    initial_sidebar_state="collapsed",  # 侧边栏默认收起（实际已隐藏）
+    initial_sidebar_state="collapsed",
     page_icon="⚡"
 )
 
 # ---------- 全局设计系统 (Apple Inspired) ----------
 st.markdown("""
 <style>
-    /* 导入字体 */
     @import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
 
     :root {
@@ -39,19 +38,16 @@ st.markdown("""
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
-    /* 隐藏侧边栏 */
     [data-testid="stSidebar"] { display: none; }
     [data-testid="stSidebarNav"] { display: none; }
     header { visibility: hidden; }
     footer { visibility: hidden; }
 
-    /* 主内容区 */
     .main .block-container {
         max-width: 1400px;
         padding-top: 2rem;
     }
 
-    /* 页面头部 */
     .page-header {
         margin-bottom: 2.5rem;
         border-bottom: 1px solid var(--border-medium);
@@ -69,22 +65,6 @@ st.markdown("""
         font-weight: 400;
     }
 
-    /* 筛选栏 (水平) */
-    .filter-bar {
-        display: flex;
-        gap: 1.5rem;
-        align-items: flex-end;
-        margin-bottom: 2rem;
-        padding: 1rem 1.5rem;
-        background: var(--bg-secondary);
-        border-radius: 20px;
-        border: 1px solid var(--border-light);
-        box-shadow: var(--shadow-sm);
-    }
-    .filter-item {
-        flex: 1;
-        min-width: 200px;
-    }
     .filter-label {
         font-size: 0.8rem;
         font-weight: 600;
@@ -94,18 +74,7 @@ st.markdown("""
         margin-bottom: 0.25rem;
     }
 
-    /* 统计卡片（仅用于展示，点击按钮样式单独定义） */
-    .stat-card {
-        background: var(--bg-secondary);
-        padding: 1.75rem 0.5rem;
-        border-radius: 20px;
-        box-shadow: var(--shadow-sm);
-        text-align: center;
-        border: 1px solid var(--border-light);
-        transition: var(--transition);
-    }
-
-    /* 分类按钮样式 */
+    /* 统计按钮默认样式 */
     .stButton > button {
         width: 100%;
         background: var(--bg-secondary);
@@ -121,14 +90,6 @@ st.markdown("""
         box-shadow: var(--shadow-md) !important;
         transform: scale(1.01);
         border-color: var(--accent-blue) !important;
-    }
-    .stButton > button:active {
-        transform: scale(0.99);
-    }
-    /* 激活按钮（通过 session_state 记录，这里用自定义类区分） */
-    .active-cat-btn {
-        border: 2px solid var(--accent-blue) !important;
-        background: linear-gradient(145deg, #ffffff, #f8faff) !important;
     }
 
     /* 信息流卡片 */
@@ -308,7 +269,6 @@ st.markdown("""
         font-weight: 600;
     }
 
-    /* 下拉框 */
     div[data-baseweb="select"] > div {
         background-color: var(--bg-secondary) !important;
         border-radius: 12px !important;
@@ -316,7 +276,6 @@ st.markdown("""
         box-shadow: var(--shadow-sm) !important;
     }
 
-    /* 提示信息 */
     .stInfo, .stWarning {
         background: var(--bg-secondary) !important;
         border-radius: 20px !important;
@@ -327,7 +286,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ---------- 数据加载函数 (月度进展) ----------
+# ---------- 数据加载 ----------
 GSHEET_URL = st.secrets.get("gsheet_url", "")
 
 @st.cache_data(ttl=300)
@@ -348,100 +307,43 @@ def load_monthly_data():
         if '分类' in df.columns:
             df['分类'] = df['分类'].astype(str).str.strip()
         return df
-    except Exception as e:
-        st.error(f"数据读取异常，请检查配置。")
+    except Exception:
         return pd.DataFrame()
 
-# ---------- 模拟数据 (博主 & 学习资料) ----------
 def get_blogger_data():
     return [
-        {
-            "name": "Andrej Karpathy",
-            "handle": "@karpathy",
-            "platform": "X / YouTube",
-            "avatar": "🧠",
-            "quote": "最近在构建一个从零开始的 LLM 训练项目，代码已开源在 GitHub。最让我惊讶的是数据质量对最终效果的影响远超模型架构。",
-            "date": "2026-04-15",
-            "category": "技术大牛"
-        },
-        {
-            "name": "李沐",
-            "handle": "@mli",
-            "platform": "Bilibili / 知乎",
-            "avatar": "📚",
-            "quote": "动手学深度学习 第三版正在更新中，新增了关于 MoE 和 RLHF 的章节。欢迎大家提 PR 和 issue。",
-            "date": "2026-04-10",
-            "category": "教育者"
-        },
-        {
-            "name": "Simon Willison",
-            "handle": "@simonw",
-            "platform": "X / Blog",
-            "avatar": "🐍",
-            "quote": "Datasette 的新插件支持了 embedding 搜索，现在你可以用自然语言查询 SQLite 数据库了。",
-            "date": "2026-04-08",
-            "category": "开发者"
-        },
-        {
-            "name": "Lilian Weng",
-            "handle": "@lilianweng",
-            "platform": "X / 个人博客",
-            "avatar": "🤖",
-            "quote": "写了一篇长文梳理 OpenAI 内部使用的 Agent 系统设计原则，包括规划、记忆和工具使用。",
-            "date": "2026-04-01",
-            "category": "研究员"
-        }
+        {"name": "Andrej Karpathy", "handle": "@karpathy", "platform": "X / YouTube", "avatar": "🧠",
+         "quote": "最近在构建一个从零开始的 LLM 训练项目，代码已开源在 GitHub。最让我惊讶的是数据质量对最终效果的影响远超模型架构。",
+         "date": "2026-04-15", "category": "技术大牛"},
+        {"name": "李沐", "handle": "@mli", "platform": "Bilibili / 知乎", "avatar": "📚",
+         "quote": "动手学深度学习 第三版正在更新中，新增了关于 MoE 和 RLHF 的章节。欢迎大家提 PR 和 issue。",
+         "date": "2026-04-10", "category": "教育者"},
+        {"name": "Simon Willison", "handle": "@simonw", "platform": "X / Blog", "avatar": "🐍",
+         "quote": "Datasette 的新插件支持了 embedding 搜索，现在你可以用自然语言查询 SQLite 数据库了。",
+         "date": "2026-04-08", "category": "开发者"},
+        {"name": "Lilian Weng", "handle": "@lilianweng", "platform": "X / 个人博客", "avatar": "🤖",
+         "quote": "写了一篇长文梳理 OpenAI 内部使用的 Agent 系统设计原则，包括规划、记忆和工具使用。",
+         "date": "2026-04-01", "category": "研究员"}
     ]
 
 def get_resource_data():
     return [
-        {
-            "title": "动手学深度学习",
-            "desc": "李沐等人的开源深度学习教材，包含 PyTorch 代码实现。",
-            "icon": "📘",
-            "url": "https://zh.d2l.ai/",
-            "tags": ["入门", "PyTorch", "书籍"]
-        },
-        {
-            "title": "Hugging Face NLP Course",
-            "desc": "学习使用 Transformers 库和扩散模型的最佳实践。",
-            "icon": "🤗",
-            "url": "https://huggingface.co/learn/nlp-course",
-            "tags": ["NLP", "Transformers", "实战"]
-        },
-        {
-            "title": "Fast.ai",
-            "desc": "面向程序员的实用深度学习课程，强调快速上手和可复现结果。",
-            "icon": "⚡",
-            "url": "https://course.fast.ai/",
-            "tags": ["入门", "计算机视觉", "实战"]
-        },
-        {
-            "title": "LLM Bootcamp",
-            "desc": "Full Stack Deep Learning 出品的大语言模型训练与部署课程。",
-            "icon": "🚀",
-            "url": "https://fullstackdeeplearning.com/llm-bootcamp/",
-            "tags": ["LLM", "高级", "工程"]
-        },
-        {
-            "title": "Papers with Code",
-            "desc": "机器学习论文与代码对照，追踪 SOTA 模型。",
-            "icon": "📄",
-            "url": "https://paperswithcode.com/",
-            "tags": ["论文", "SOTA", "资源"]
-        },
-        {
-            "title": "The Illustrated Transformer",
-            "desc": "Jay Alammar 的图解 Transformer，直观理解注意力机制。",
-            "icon": "🎨",
-            "url": "https://jalammar.github.io/illustrated-transformer/",
-            "tags": ["Transformer", "图解", "必读"]
-        }
+        {"title": "动手学深度学习", "desc": "李沐等人的开源深度学习教材，包含 PyTorch 代码实现。", "icon": "📘",
+         "url": "https://zh.d2l.ai/", "tags": ["入门", "PyTorch", "书籍"]},
+        {"title": "Hugging Face NLP Course", "desc": "学习使用 Transformers 库和扩散模型的最佳实践。", "icon": "🤗",
+         "url": "https://huggingface.co/learn/nlp-course", "tags": ["NLP", "Transformers", "实战"]},
+        {"title": "Fast.ai", "desc": "面向程序员的实用深度学习课程，强调快速上手和可复现结果。", "icon": "⚡",
+         "url": "https://course.fast.ai/", "tags": ["入门", "计算机视觉", "实战"]},
+        {"title": "LLM Bootcamp", "desc": "Full Stack Deep Learning 出品的大语言模型训练与部署课程。", "icon": "🚀",
+         "url": "https://fullstackdeeplearning.com/llm-bootcamp/", "tags": ["LLM", "高级", "工程"]},
+        {"title": "Papers with Code", "desc": "机器学习论文与代码对照，追踪 SOTA 模型。", "icon": "📄",
+         "url": "https://paperswithcode.com/", "tags": ["论文", "SOTA", "资源"]},
+        {"title": "The Illustrated Transformer", "desc": "Jay Alammar 的图解 Transformer，直观理解注意力机制。", "icon": "🎨",
+         "url": "https://jalammar.github.io/illustrated-transformer/", "tags": ["Transformer", "图解", "必读"]}
     ]
 
-# ---------- 渲染组件 ----------
+# ---------- 组件 ----------
 def render_feed_cards(data):
-    """渲染月度进展的信息流卡片"""
     if data.empty:
         st.info("✨ 当前筛选条件下暂无数据")
         return
@@ -487,7 +389,6 @@ def render_feed_cards(data):
         """, unsafe_allow_html=True)
 
 def render_monthly_insights():
-    """第一页：月度 AI 进展（含可点击分类筛选）"""
     st.markdown("""
     <div class="page-header">
         <h1>📆 月度 AI 进展 · 动态看板</h1>
@@ -496,19 +397,16 @@ def render_monthly_insights():
     """, unsafe_allow_html=True)
 
     all_data = load_monthly_data()
-
     if all_data.empty:
         st.info("📭 等待数据接入 — 请确保数据源已配置并包含所需字段。")
         return
 
-    # 初始化 session state 分类
     if 'active_category' not in st.session_state:
         st.session_state.active_category = "全部"
 
     month_options = sorted(all_data['选择月份'].unique().tolist(), reverse=True)
     region_col = next((c for c in all_data.columns if c in ['地域', '地区']), None)
 
-    # 水平筛选栏（两列）
     col1, col2 = st.columns([1, 1])
     with col1:
         st.markdown('<div class="filter-label">📅 月份</div>', unsafe_allow_html=True)
@@ -524,12 +422,10 @@ def render_monthly_insights():
             st.markdown('<div class="filter-label">🌐 地域</div>', unsafe_allow_html=True)
             st.selectbox("地域", ["全部地区"], disabled=True, label_visibility="collapsed")
 
-    # 应用筛选
     df = all_data[all_data['选择月份'] == selected_month].copy()
     if region_col and selected_region != "全部地区":
         df = df[df[region_col] == selected_region]
 
-    # 计算各分类数量
     cat_col = '分类' if '分类' in df.columns else None
     if cat_col:
         infra_n = len(df[df[cat_col] == '基建'])
@@ -539,23 +435,42 @@ def render_monthly_insights():
         infra_n = app_n = fin_n = 0
     total_n = len(df)
 
-    # 可点击的分类按钮（四列）
-    st.markdown("### 点击卡片筛选分类")
+    # 四列按钮
     c1, c2, c3, c4 = st.columns(4)
 
-    # 自定义样式区分激活按钮（需根据 session_state 动态添加类，通过 st.markdown 注入）
+    # 根据当前激活分类注入高亮样式
     active = st.session_state.active_category
-    active_style = """
-    <style>
-    .active-cat-btn {
-        border: 2px solid var(--accent-blue) !important;
-        background: linear-gradient(145deg, #ffffff, #f8faff) !important;
-    }
-    </style>
-    """
-    st.markdown(active_style, unsafe_allow_html=True)
+    highlight_css = ""
+    if active == "全部":
+        highlight_css = """
+        div[data-testid="column"]:nth-of-type(1) .stButton > button {
+            border: 2px solid var(--accent-blue) !important;
+            background: linear-gradient(145deg, #ffffff, #f8faff) !important;
+        }
+        """
+    elif active == "基建":
+        highlight_css = """
+        div[data-testid="column"]:nth-of-type(2) .stButton > button {
+            border: 2px solid var(--accent-blue) !important;
+            background: linear-gradient(145deg, #ffffff, #f8faff) !important;
+        }
+        """
+    elif active == "应用":
+        highlight_css = """
+        div[data-testid="column"]:nth-of-type(3) .stButton > button {
+            border: 2px solid var(--accent-blue) !important;
+            background: linear-gradient(145deg, #ffffff, #f8faff) !important;
+        }
+        """
+    elif active == "金融":
+        highlight_css = """
+        div[data-testid="column"]:nth-of-type(4) .stButton > button {
+            border: 2px solid var(--accent-blue) !important;
+            background: linear-gradient(145deg, #ffffff, #f8faff) !important;
+        }
+        """
+    st.markdown(f"<style>{highlight_css}</style>", unsafe_allow_html=True)
 
-    # 按钮
     with c1:
         if st.button(f"📊 全部\n\n{total_n}", key="btn_all", use_container_width=True):
             st.session_state.active_category = "全部"
@@ -569,20 +484,15 @@ def render_monthly_insights():
         if st.button(f"💰 金融\n\n{fin_n}", key="btn_fin", use_container_width=True):
             st.session_state.active_category = "金融"
 
-    # 显示当前筛选状态
-    st.caption(f"当前筛选：**{st.session_state.active_category}** 类动态")
-
     # 根据激活分类过滤数据
     if cat_col and st.session_state.active_category != "全部":
         display_df = df[df[cat_col] == st.session_state.active_category]
     else:
         display_df = df
 
-    # 渲染卡片
     render_feed_cards(display_df)
 
 def render_bloggers():
-    """第二页：知名博主动态"""
     st.markdown("""
     <div class="page-header">
         <h1>🗣️ 知名博主 · 洞见追踪</h1>
@@ -622,7 +532,6 @@ def render_bloggers():
     st.caption("💡 数据为手动更新，计划接入 RSS / X API 自动同步。")
 
 def render_resources():
-    """第三页：学习资料卡片墙"""
     st.markdown("""
     <div class="page-header">
         <h1>📚 学习资料 · 系统进阶</h1>
@@ -643,7 +552,6 @@ def render_resources():
         st.info("没有匹配的学习资料，请调整标签筛选。")
         return
 
-    # 每行三个卡片
     cols = st.columns(3)
     for i, res in enumerate(filtered_res):
         with cols[i % 3]:
@@ -666,7 +574,6 @@ def render_resources():
 
 # ---------- 主入口 ----------
 def main():
-    # 顶部品牌区
     st.markdown("""
     <div style="margin-bottom: 1rem;">
         <span style="font-size: 2rem; font-weight: 700; letter-spacing: -0.03em; background: linear-gradient(135deg, #0071e3 0%, #af52de 80%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
@@ -676,7 +583,6 @@ def main():
     </div>
     """, unsafe_allow_html=True)
 
-    # 顶部导航页签
     tab1, tab2, tab3 = st.tabs(["📆 月度进展", "🗣️ 知名博主", "📚 学习资料"])
 
     with tab1:

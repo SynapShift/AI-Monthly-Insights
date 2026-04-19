@@ -106,27 +106,25 @@ st.markdown("""
 #         "nav-link-selected": {"background-color": "#E60012", "color": "white"},
 #     }
 # )
+
 selected = option_menu(
     menu_title=None,
     options=["AI 产品进展", "知名博主动态", "AI 学习资料库"],
-    icons=["cpu", "broadcast", "archive"],
     orientation="horizontal",
     styles={
-        "container": {
-            "padding": "5px", 
-            "background-color": "#ffffff", 
-            "border-radius": "50px", # 彻底变圆
-            "margin": "0 auto", 
-            "width": "fit-content", # 宽度随内容变化
-            "border": "1px solid #f0f0f0",
-            "box-shadow": "0 4px 12px rgba(0,0,0,0.05)"
-        },
+        "container": {"background-color": "transparent"}, # 透明背景
         "nav-link": {
-            "font-size": "14px", 
-            "border-radius": "50px", # 链接也要变圆
-            "padding": "10px 20px"
+            "font-size": "15px", 
+            "color": "#666", 
+            "border-bottom": "2px solid transparent", # 默认底边透明
+            "transition": "0.3s"
         },
-        "nav-link-selected": {"background-color": "#E60012"},
+        "nav-link-selected": {
+            "background-color": "transparent", # 选中也不要背景
+            "color": "#E60012", 
+            "font-weight": "bold",
+            "border-bottom": "2px solid #E60012" # 选中时显示红线
+        },
     }
 )
 

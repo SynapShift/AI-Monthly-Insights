@@ -86,26 +86,51 @@ st.markdown("""
 
 # ================= 顶部导航栏实现 =================
 # 使用 option_menu 创建水平导航
+# selected = option_menu(
+#     menu_title=None, # 不显示标题
+#     options=["AI 产品进展", "知名博主动态", "AI 学习资料库"],
+#     icons=["rocket-takeoff", "person-badge", "book"], # 使用 bootstrap 图标
+#     menu_icon="cast",
+#     default_index=0,
+#     orientation="horizontal",
+#     styles={
+#         "container": {"padding": "0!important", "background-color": "#fbfbfd", "max-width": "100%"},
+#         "icon": {"color": "#6e6e73", "font-size": "18px"}, 
+#         "nav-link": {
+#             "font-size": "15px", 
+#             "text-align": "center", 
+#             "margin": "0px", 
+#             "color": "#1d1d1f",
+#             "font-weight": "500"
+#         },
+#         "nav-link-selected": {"background-color": "#E60012", "color": "white"},
+#     }
+# )
 selected = option_menu(
-    menu_title=None, # 不显示标题
+    menu_title=None,
     options=["AI 产品进展", "知名博主动态", "AI 学习资料库"],
-    icons=["rocket-takeoff", "person-badge", "book"], # 使用 bootstrap 图标
-    menu_icon="cast",
-    default_index=0,
+    icons=["cpu", "broadcast", "archive"],
     orientation="horizontal",
     styles={
-        "container": {"padding": "0!important", "background-color": "#fbfbfd", "max-width": "100%"},
-        "icon": {"color": "#6e6e73", "font-size": "18px"}, 
-        "nav-link": {
-            "font-size": "15px", 
-            "text-align": "center", 
-            "margin": "0px", 
-            "color": "#1d1d1f",
-            "font-weight": "500"
+        "container": {
+            "padding": "5px", 
+            "background-color": "#ffffff", 
+            "border-radius": "50px", # 彻底变圆
+            "margin": "0 auto", 
+            "width": "fit-content", # 宽度随内容变化
+            "border": "1px solid #f0f0f0",
+            "box-shadow": "0 4px 12px rgba(0,0,0,0.05)"
         },
-        "nav-link-selected": {"background-color": "#E60012", "color": "white"},
+        "nav-link": {
+            "font-size": "14px", 
+            "border-radius": "50px", # 链接也要变圆
+            "padding": "10px 20px"
+        },
+        "nav-link-selected": {"background-color": "#E60012"},
     }
 )
+
+
 
 # ================= 数据获取 =================
 @st.cache_data(ttl=600)

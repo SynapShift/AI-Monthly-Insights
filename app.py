@@ -145,7 +145,7 @@ if selected == "AI 产品进展":
 elif selected == "知名博主动态":
     st.markdown("<h1 style='text-align: center; margin-bottom: 20px;'>🏗️ 知名博主动态</h1>", unsafe_allow_html=True)
     
-    # ================= 1. 核心 UI 样式统一 =================
+    # ================= 1. 终极 CSS 样式校准 =================
     st.markdown("""
     <style>
     /* 容器边框美化 */
@@ -156,57 +156,60 @@ elif selected == "知名博主动态":
         padding: 20px !important;
     }
 
-    /* --- 核心：深度校准按钮与链接的字号与粗细 --- */
+    /* --- 核心：暴力对齐按钮与链接 --- */
     
-    /* 1. 针对阅读全文按钮 (Streamlit Button) */
+    /* 1. 针对“阅读全文”按钮的深度重定义 */
     div[data-testid="stButton"] button {
         background-color: transparent !important;
         color: #0071E3 !important;
         border: none !important;
         padding: 0 !important;
         margin: 0 !important;
-        font-size: 12px !important; 
-        font-weight: 700 !important; /* 强制加粗 */
+        /* 关键：使用 11.5px 抵消按钮自带的放大感，并强制 700 粗细 */
+        font-size: 11.5px !important; 
+        font-weight: 700 !important; 
         width: auto !important;
-        min-height: 18px !important; 
-        height: 18px !important;
-        line-height: 18px !important; 
+        min-width: 0 !important;
+        min-height: 20px !important; 
+        height: 20px !important;
+        line-height: 20px !important; 
         box-shadow: none !important;
         display: inline-flex !important;
         align-items: center !important;
         justify-content: flex-end !important;
         vertical-align: middle !important;
-        letter-spacing: 0.5px !important; /* 微调间距，防止视觉虚大 */
+        /* 强制取消按钮的所有外边距 */
+        overflow: visible !important;
     }
     
     div[data-testid="stButton"] button:hover {
         text-decoration: underline !important;
-        background-color: transparent !important;
         color: #0071E3 !important;
     }
 
-    /* 2. 针对收听原片链接 (HTML Link) */
+    /* 2. 针对“收听原片”及其他 HTML 链接 */
     .unified-link {
         color: #0071E3 !important;
         font-size: 12px !important; 
         text-decoration: none !important;
-        font-weight: 700 !important; /* 强制加粗，保持一致 */
-        height: 18px !important;
-        line-height: 18px !important; 
+        font-weight: 700 !important; /* 强制 700 加粗 */
+        height: 20px !important;
+        line-height: 20px !important; 
         display: inline-flex;
         align-items: center;
         vertical-align: middle;
-        letter-spacing: 0.5px;
+        white-space: nowrap;
     }
     .unified-link:hover {
         text-decoration: underline !important;
     }
 
-    /* 强制列容器内部对齐 */
+    /* 强制列容器：彻底压榨间距，保证右对齐 */
     [data-testid="column"] {
         display: flex !important;
         justify-content: flex-end !important;
         align-items: center !important;
+        gap: 0 !important; /* 消除列间隙 */
     }
     </style>
     """, unsafe_allow_html=True)
@@ -271,9 +274,10 @@ elif selected == "知名博主动态":
                     <div style="border-top: 1px solid #F5F5F7; margin-bottom: -10px; margin-top: 10px;"></div>
                     """, unsafe_allow_html=True)
                     
-                    # 比例保持：[0.82, 0.09, 0.09]
+                    # 比例重设：0.82 占空，0.09/0.09 紧挨着操作
                     c1, c2, c3 = st.columns([0.82, 0.09, 0.09])
                     with c2:
+                        # 确保箭头是 ↗
                         if st.button("阅读全文 ↗", key=f"btn_{pod.get('url')}"):
                             show_full_transcript(title_clean, clean_text)
                     with c3:
@@ -302,7 +306,6 @@ elif selected == "知名博主动态":
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
-
                 
 ###==============================================
 

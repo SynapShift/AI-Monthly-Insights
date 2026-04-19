@@ -166,12 +166,11 @@ elif selected == "知名博主动态":
                     """, unsafe_allow_html=True)
 
     with tab2:
-            # 定义弹窗函数 (Streamlit 1.34+ 支持 st.dialog)
+            # 定义弹窗函数
             @st.dialog("对话全文摘要", width="large")
             def show_full_transcript(title, content):
                 st.markdown(f"### {title}")
                 st.markdown("---")
-                # 使用 container 包装并设置高度，实现内部滚动
                 with st.container(height=500):
                     st.write(content)
                 if st.button("关闭"):
@@ -183,7 +182,6 @@ elif selected == "知名博主动态":
                     # 1. 文本清洗
                     import re
                     raw_transcript = pod.get('transcript', '')
-                    # 去掉 Speaker 标识符
                     clean_text = re.sub(r'Speaker \d+ \| \d+:\d+ - \d+:\d+', '', raw_transcript).strip()
                     
                     # 预览长度延长至 600 字符
@@ -193,9 +191,9 @@ elif selected == "知名博主动态":
                     pod_name = pod.get('name', 'PODCAST').upper()
                     title = pod.get('title', 'Untitled')
     
-                    # 2. 渲染卡片
+                    # 2. 渲染卡片头部和内容 (使用 div 开头但不闭合，包裹后续按钮)
                     st.markdown(f"""
-                    <div class="product-card">
+                    <div class="product-card" style="margin-bottom: 0px; border-bottom: none; border-radius: 16px 16px 0 0;">
                         <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
                             <span style="border-left:3px solid #E60012; padding-left:8px; font-size:11px; font-weight:700; color:#1D1D1F;">{pod_name}</span>
                             <span style="color:#86868B; font-size:11px;">{pub_date}</span>
@@ -209,20 +207,48 @@ elif selected == "知名博主动态":
                     </div>
                     """, unsafe_allow_html=True)
     
-                    # 3. 底部操作栏：左侧弹窗按钮，右侧跳转链接
-                    col_btn1, col_btn2 = st.columns([1, 1])
-                    with col_btn1:
-                        if st.button(f"展开全文摘要", key=f"btn_{pod.get('url')}"):
-                            show_full_transcript(title, clean_text)
-                    with col_btn2:
-                        # 保持靠右对齐的样式
-                        st.markdown(f"""
-                        <div style="text-align:right; padding-top:10px;">
-                            <a href="{pod.get('url','#')}" target="_blank" style="color:#0071E3; font-size:12px; text-decoration:none; font-weight:600;">收听原片 &rarr;</a>
-                        </div>
+                    # 3. 在同一个“视觉卡片”内放置操作按钮
+                    # 通过设置背景色和边框，使其视觉上与上方卡片连为一体
+                    with st.container():
+                        st.markdown("""
+                            <style>
+                            div[data-testid="stVerticalBlock"] > div:has(div.button-row) {
+                                background-color: white;
+                            }
+                            </style>
                         """, unsafe_allow_html=True)
+                        
+                        # 使用两列，第一列留空，将按钮挤到右侧
+                        col1, col2, col3 = st.columns([2, 1.2, 1.2])
+                        with col2:
+                            if st.button("展开全文", key=f"full_{pod.get('url')}", use_container_width=True):
+                                show_full_transcript(title, clean_text)
+                        with col3:
+                            # 构造一个与 st.button 高度一致的 HTML 按钮样式
+                            st.markdown(f"""
+                            <a href="{pod.get('url','#')}" target="_blank" style="
+                                text-decoration: none;
+                                display: flex;
+                                justify-content: center;
+                                align-items: center;
+                                height: 38px;
+                                background-color: #FFFFFF;
+                                color: #0071E3;
+                                border: 1px solid #0071E3;
+                                border-radius: 8px;
+                                font-size: 14px;
+                                font-weight: 500;
+                            ">
+                                收听原片 &rarr;
+                            </a>
+                            """, unsafe_allow_html=True)
+                    
+                    # 添加卡片底部的圆角补丁和间隔
+                    st.markdown('<div style="height: 20px; border: 1px solid #F2F2F7; border-top: none; background: white; border-radius: 0 0 16px 16px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);"></div>', unsafe_allow_html=True)
+    
             else:
                 st.info("💡 正在同步最新播客洞察...")
+
 
 
     with tab3:

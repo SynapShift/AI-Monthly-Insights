@@ -1,27 +1,19 @@
 import pandas as pd
 import streamlit as st
 
-GSHEET_URL = st.secrets.get("gsheet_url", "")
 
 @st.cache_data(ttl=300)
 def load_gsheet():
     """
-    兼容 Google Sheet CSV 导出链接
+    直接从 Streamlit secrets 读取 Google Sheet CSV URL
     """
-    if not GSHEET_URL:
-        return pd.DataFrame()
+    url = st.secrets["gsheet_url"]  # 注意：这里用强制读取，不再 get()
 
-    # 如果你是公开 sheet，一般用这个格式：
-    # https://docs.google.com/spreadsheets/d/{id}/export?format=csv
-
-    df = pd.read_csv(GSHEET_URL)
+    df = pd.read_csv(url)
     return df
 
 
 def clean_ai_products(df: pd.DataFrame):
-    """
-    标准化字段（防止sheet乱）
-    """
     if df.empty:
         return df
 
@@ -36,5 +28,4 @@ def clean_ai_products(df: pd.DataFrame):
         "市场反响": "reaction",
     }
 
-    df = df.rename(columns=rename_map)
-    return df
+    return df.rename(columns=rename_map)

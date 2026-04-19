@@ -273,7 +273,7 @@ elif selected == "知名博主动态":
                     """, unsafe_allow_html=True)
                     
                     # 强行缩窄右侧两列，保证文字在右下角紧密排列
-                    c1, c2, c3 = st.columns([0.8, 0.1, 0.1])
+                    c1, c2, c3 = st.columns([0.9, 0.05, 0.05])
                     with c2:
                         # 标签改为“阅读全文”，并使用与链接风格类似的右箭头
                         if st.button("阅读全文 ›", key=f"btn_{pod.get('url')}"):

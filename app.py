@@ -141,6 +141,28 @@ if selected == "AI 产品进展":
 
 elif selected == "知名博主动态":
     st.markdown("<h1 style='text-align: center; margin-bottom: 20px;'>🏗️ 知名博主动态</h1>", unsafe_allow_html=True)
+    
+    # 注入 CSS 强制美化原生按钮，消除分裂感
+    st.markdown("""
+    <style>
+    div[data-testid="stButton"] button {
+        height: 32px !important;
+        padding: 0px 12px !important;
+        font-size: 11px !important;
+        color: #0071E3 !important;
+        background-color: transparent !important;
+        border: 1px solid #0071E3 !important;
+        border-radius: 6px !important;
+        font-weight: 500 !important;
+    }
+    div[data-testid="stButton"] button:hover {
+        background-color: #F5F5F7 !important;
+        color: #0071E3 !important;
+        border-color: #0071E3 !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
     data_feeds = fetch_builder_feeds()
     tab1, tab2, tab3 = st.tabs(["Twitter Insights", "Podcast Summary", "Official Blog"])
 
@@ -152,20 +174,20 @@ elif selected == "知名博主动态":
                 with x_cols[i % 2]:
                     clean_text = html.unescape(tweet.get('text', '')).replace("\n", "<br>")
                     st.markdown(f"""
-                    <div class="product-card" style="min-height:160px;">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                    <div class="product-card" style="min-height:160px; padding:20px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
                             <b style="color:#E60012; font-size:14px;">{tweet.get('author_name')}</b>
                             <span style="color:#888; font-size:11px;">@{tweet.get('author_handle')}</span>
                         </div>
-                        <div style="font-size:13px; color:#1D1D1F; line-height:1.6;">{clean_text}</div>
-                        <div style="margin-top:15px; border-top: 1px solid #F2F2F7; padding-top:10px; display:flex; justify-content:space-between;">
-                            <span style="color:#86868b; font-size:10px;">Date: {tweet.get('createdAt', '')[:10]}</span>
-                            <a href="{tweet.get('url', '#')}" target="_blank" style="color:#0071e3; font-size:11px; text-decoration:none; font-weight:600;">Original Post &rarr;</a>
+                        <div style="font-size:13px; color:#1d1d1f; line-height:1.6;">{clean_text}</div>
+                        <div style="margin-top:15px; border-top: 1px solid #F5F5F7; padding-top:10px; display:flex; justify-content:space-between; align-items:center;">
+                            <span style="color:#86868b; font-size:10px;">🕒 {tweet.get('createdAt', '')[:10]}</span>
+                            <a href="{tweet.get('url', '#')}" target="_blank" style="color:#0071e3; font-size:11px; text-decoration:none; font-weight:600;">Original Post →</a>
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
+
     with tab2:
-        # 定义弹窗函数
         @st.dialog("对话全文摘要", width="large")
         def show_full_transcript(title, content):
             st.markdown(f"### {title}")
@@ -178,86 +200,39 @@ elif selected == "知名博主动态":
         pod_list = data_feeds.get("Podcasts", [])
         if pod_list:
             for pod in pod_list[:8]:
-                # 1. 文本清洗
-                import re
                 raw_transcript = pod.get('transcript', '')
                 clean_text = re.sub(r'Speaker \d+ \| \d+:\d+ - \d+:\d+', '', raw_transcript).strip()
-                
-                # 预览长度大幅增加：1000 字符，获取更多正文内容
+                # 1. 延长正文字数至 1000 字符
                 preview_summary = html.escape(clean_text)[:1000] + "..."
-                
                 pub_date = str(pod.get('publishedAt', ''))[:10] or "2026-04-10"
-                pod_name = pod.get('name', 'PODCAST').upper()
-                title = html.escape(pod.get('title', 'Untitled'))
+                title = pod.get('title', 'Untitled')
 
-                # 2. 渲染一体化卡片
-                # 关键改进：在 HTML 内部直接预留按钮位置
+                # 2. 渲染一体化卡片 (预留底部操作空间)
                 st.markdown(f"""
-                <div class="product-card" style="position: relative; padding-bottom: 60px;">
+                <div class="product-card" style="padding-bottom: 50px; position: relative;">
                     <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
-                        <span style="border-left:3px solid #E60012; padding-left:8px; font-size:11px; font-weight:700; color:#1D1D1F;">{pod_name}</span>
+                        <span style="border-left:3px solid #E60012; padding-left:8px; font-size:11px; font-weight:700; color:#1D1D1F;">{pod.get('name', 'PODCAST').upper()}</span>
                         <span style="color:#86868B; font-size:11px;">{pub_date}</span>
                     </div>
-                    <h4 style="margin:0 0 12px 0; font-size:17px; color:#1D1D1F; line-height:1.4;">{title}</h4>
-                    <div class="insight-box" style="margin-bottom: 0;">
+                    <h4 style="margin:0 0 12px 0; font-size:17px; color:#1D1D1F; line-height:1.4;">{html.escape(title)}</h4>
+                    <div class="insight-box">
                         <p style="margin:0; font-size:13px; color:#424245; line-height:1.6;">
                             <span style="color:#E60012; font-weight:700; font-size:10px; margin-right:6px;">KEY INSIGHT:</span>{preview_summary}
                         </p>
                     </div>
-                    
-                    <div style="
-                        position: absolute; 
-                        bottom: 20px; 
-                        right: 24px; 
-                        display: flex; 
-                        gap: 15px; 
-                        align-items: center;
-                    ">
-                        <a href="{pod.get('url','#')}" target="_blank" style="
-                            color: #86868b; 
-                            font-size: 12px; 
-                            text-decoration: none; 
-                            font-weight: 500;
-                            transition: color 0.2s;
-                        ">
+                    <div style="position: absolute; bottom: 24px; right: 24px;">
+                        <a href="{pod.get('url','#')}" target="_blank" style="color: #86868b; font-size: 11px; text-decoration: none; font-weight: 500;">
                             收听原片 &rarr;
                         </a>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
 
-                # 3. 单独处理“展开全文”按钮（由于 Python 逻辑限制，它必须是一个独立组件）
-                # 我们通过负 Margin 将其“吸”进上方卡片
-                st.markdown('<div style="margin-top: -52px; margin-left: 24px; position: relative; z-index: 10; width: fit-content;">', unsafe_allow_html=True)
-                if st.button("展开全文摘要", key=f"btn_{pod.get('url')}", help="点击查看完整文本"):
+                # 3. 嵌入展开全文按钮 (利用负 Margin 顶入卡片内部)
+                st.markdown('<div style="margin-top: -46px; margin-left: 24px; position: relative; z-index: 99;">', unsafe_allow_html=True)
+                if st.button("展开全文", key=f"pod_{pod.get('url')}"):
                     show_full_transcript(title, clean_text)
                 st.markdown('</div><br>', unsafe_allow_html=True)
-
-        else:
-            st.info("💡 正在同步最新播客洞察...")
-
-# 补充一个 CSS 样式来彻底缩小 st.button 的分裂感
-st.markdown("""
-<style>
-    /* 针对展开全文按钮的微调 */
-    div[data-testid="stButton"] button {
-        height: auto !important;
-        padding: 4px 8px !important;
-        font-size: 12px !important;
-        color: #0071E3 !important;
-        background-color: transparent !important;
-        border: 1px solid #0071E3 !important;
-        border-radius: 6px !important;
-        transition: all 0.2s ease;
-    }
-    div[data-testid="stButton"] button:hover {
-        background-color: #F5F5F7 !important;
-        border-color: #0071E3 !important;
-    }
-</style>
-""", unsafe_allow_html=True)
-
-
 
     with tab3:
         blog_list = data_feeds.get("Blogs", [])
@@ -266,17 +241,16 @@ st.markdown("""
                 raw_date = blog.get('publishedAt') or blog.get('date')
                 date_str = str(raw_date)[:10] if raw_date else "2026-04-19"
                 clean_blog = html.unescape(blog.get('content', blog.get('description', '')))[:200] + "..."
-                
                 st.markdown(f"""
                 <div class="product-card">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
                         <span class="tag" style="background-color:#E8F2FF; color:#0071E3; margin:0;">{blog.get('name', 'Official Blog')}</span>
-                        <span style="color:#86868b; font-size:11px;">Date: {date_str}</span>
+                        <span style="color:#86868b; font-size:11px;">{date_str}</span>
                     </div>
                     <h4 style="margin:0 0 10px 0; font-size:17px; line-height:1.4;">{blog.get('title')}</h4>
                     <p style="font-size:13px; color:#424245; line-height:1.6;">{clean_blog}</p>
                     <div style="margin-top:12px; text-align:right; border-top:1px solid #F5F5F7; padding-top:10px;">
-                        <a href="{blog.get('url','#')}" target="_blank" style="color:#0071e3; font-size:12px; text-decoration:none; font-weight:600;">READ FULL ARTICLE &rarr;</a>
+                        <a href="{blog.get('url','#')}" target="_blank" style="color:#0071e3; font-size:12px; text-decoration:none; font-weight:600;">阅读全文 &rarr;</a>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)

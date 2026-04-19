@@ -164,90 +164,98 @@ elif selected == "知名博主动态":
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
-
     with tab2:
-            # 定义弹窗函数
-            @st.dialog("对话全文摘要", width="large")
-            def show_full_transcript(title, content):
-                st.markdown(f"### {title}")
-                st.markdown("---")
-                with st.container(height=500):
-                    st.write(content)
-                if st.button("关闭"):
-                    st.rerun()
-    
-            pod_list = data_feeds.get("Podcasts", [])
-            if pod_list:
-                for pod in pod_list[:8]:
-                    # 1. 文本清洗
-                    import re
-                    raw_transcript = pod.get('transcript', '')
-                    clean_text = re.sub(r'Speaker \d+ \| \d+:\d+ - \d+:\d+', '', raw_transcript).strip()
-                    
-                    # 预览长度延长至 600 字符
-                    preview_summary = html.escape(clean_text)[:600] + "..."
-                    
-                    pub_date = str(pod.get('publishedAt', ''))[:10] or "2026-04-10"
-                    pod_name = pod.get('name', 'PODCAST').upper()
-                    title = pod.get('title', 'Untitled')
-    
-                    # 2. 渲染卡片头部和内容 (使用 div 开头但不闭合，包裹后续按钮)
-                    st.markdown(f"""
-                    <div class="product-card" style="margin-bottom: 0px; border-bottom: none; border-radius: 16px 16px 0 0;">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
-                            <span style="border-left:3px solid #E60012; padding-left:8px; font-size:11px; font-weight:700; color:#1D1D1F;">{pod_name}</span>
-                            <span style="color:#86868B; font-size:11px;">{pub_date}</span>
-                        </div>
-                        <h4 style="margin:0 0 12px 0; font-size:17px; color:#1D1D1F; line-height:1.4;">{html.escape(title)}</h4>
-                        <div class="insight-box">
-                            <p style="margin:0; font-size:13px; color:#424245; line-height:1.6;">
-                                <span style="color:#E60012; font-weight:700; font-size:10px; margin-right:6px;">KEY INSIGHT:</span>{preview_summary}
-                            </p>
-                        </div>
+        # 定义弹窗函数
+        @st.dialog("对话全文摘要", width="large")
+        def show_full_transcript(title, content):
+            st.markdown(f"### {title}")
+            st.markdown("---")
+            with st.container(height=500):
+                st.write(content)
+            if st.button("关闭"):
+                st.rerun()
+
+        pod_list = data_feeds.get("Podcasts", [])
+        if pod_list:
+            for pod in pod_list[:8]:
+                # 1. 文本清洗
+                import re
+                raw_transcript = pod.get('transcript', '')
+                clean_text = re.sub(r'Speaker \d+ \| \d+:\d+ - \d+:\d+', '', raw_transcript).strip()
+                
+                # 预览长度大幅增加：1000 字符，获取更多正文内容
+                preview_summary = html.escape(clean_text)[:1000] + "..."
+                
+                pub_date = str(pod.get('publishedAt', ''))[:10] or "2026-04-10"
+                pod_name = pod.get('name', 'PODCAST').upper()
+                title = html.escape(pod.get('title', 'Untitled'))
+
+                # 2. 渲染一体化卡片
+                # 关键改进：在 HTML 内部直接预留按钮位置
+                st.markdown(f"""
+                <div class="product-card" style="position: relative; padding-bottom: 60px;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+                        <span style="border-left:3px solid #E60012; padding-left:8px; font-size:11px; font-weight:700; color:#1D1D1F;">{pod_name}</span>
+                        <span style="color:#86868B; font-size:11px;">{pub_date}</span>
                     </div>
-                    """, unsafe_allow_html=True)
-    
-                    # 3. 在同一个“视觉卡片”内放置操作按钮
-                    # 通过设置背景色和边框，使其视觉上与上方卡片连为一体
-                    with st.container():
-                        st.markdown("""
-                            <style>
-                            div[data-testid="stVerticalBlock"] > div:has(div.button-row) {
-                                background-color: white;
-                            }
-                            </style>
-                        """, unsafe_allow_html=True)
-                        
-                        # 使用两列，第一列留空，将按钮挤到右侧
-                        col1, col2, col3 = st.columns([2, 1.2, 1.2])
-                        with col2:
-                            if st.button("展开全文", key=f"full_{pod.get('url')}", use_container_width=True):
-                                show_full_transcript(title, clean_text)
-                        with col3:
-                            # 构造一个与 st.button 高度一致的 HTML 按钮样式
-                            st.markdown(f"""
-                            <a href="{pod.get('url','#')}" target="_blank" style="
-                                text-decoration: none;
-                                display: flex;
-                                justify-content: center;
-                                align-items: center;
-                                height: 38px;
-                                background-color: #FFFFFF;
-                                color: #0071E3;
-                                border: 1px solid #0071E3;
-                                border-radius: 8px;
-                                font-size: 14px;
-                                font-weight: 500;
-                            ">
-                                收听原片 &rarr;
-                            </a>
-                            """, unsafe_allow_html=True)
+                    <h4 style="margin:0 0 12px 0; font-size:17px; color:#1D1D1F; line-height:1.4;">{title}</h4>
+                    <div class="insight-box" style="margin-bottom: 0;">
+                        <p style="margin:0; font-size:13px; color:#424245; line-height:1.6;">
+                            <span style="color:#E60012; font-weight:700; font-size:10px; margin-right:6px;">KEY INSIGHT:</span>{preview_summary}
+                        </p>
+                    </div>
                     
-                    # 添加卡片底部的圆角补丁和间隔
-                    st.markdown('<div style="height: 20px; border: 1px solid #F2F2F7; border-top: none; background: white; border-radius: 0 0 16px 16px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);"></div>', unsafe_allow_html=True)
-    
-            else:
-                st.info("💡 正在同步最新播客洞察...")
+                    <div style="
+                        position: absolute; 
+                        bottom: 20px; 
+                        right: 24px; 
+                        display: flex; 
+                        gap: 15px; 
+                        align-items: center;
+                    ">
+                        <a href="{pod.get('url','#')}" target="_blank" style="
+                            color: #86868b; 
+                            font-size: 12px; 
+                            text-decoration: none; 
+                            font-weight: 500;
+                            transition: color 0.2s;
+                        ">
+                            收听原片 &rarr;
+                        </a>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+                # 3. 单独处理“展开全文”按钮（由于 Python 逻辑限制，它必须是一个独立组件）
+                # 我们通过负 Margin 将其“吸”进上方卡片
+                st.markdown('<div style="margin-top: -52px; margin-left: 24px; position: relative; z-index: 10; width: fit-content;">', unsafe_allow_html=True)
+                if st.button("展开全文摘要", key=f"btn_{pod.get('url')}", help="点击查看完整文本"):
+                    show_full_transcript(title, clean_text)
+                st.markdown('</div><br>', unsafe_allow_html=True)
+
+        else:
+            st.info("💡 正在同步最新播客洞察...")
+
+# 补充一个 CSS 样式来彻底缩小 st.button 的分裂感
+st.markdown("""
+<style>
+    /* 针对展开全文按钮的微调 */
+    div[data-testid="stButton"] button {
+        height: auto !important;
+        padding: 4px 8px !important;
+        font-size: 12px !important;
+        color: #0071E3 !important;
+        background-color: transparent !important;
+        border: 1px solid #0071E3 !important;
+        border-radius: 6px !important;
+        transition: all 0.2s ease;
+    }
+    div[data-testid="stButton"] button:hover {
+        background-color: #F5F5F7 !important;
+        border-color: #0071E3 !important;
+    }
+</style>
+""", unsafe_allow_html=True)
 
 
 

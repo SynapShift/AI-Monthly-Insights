@@ -2,14 +2,23 @@ import pandas as pd
 import streamlit as st
 
 
+def to_csv_url(url: str) -> str:
+    """
+    把 Google Sheet 的 edit 链接转换为 CSV 导出链接
+    """
+    if "/edit" in url:
+        base = url.split("/edit")[0]
+        return base + "/export?format=csv"
+    return url
+
+
 @st.cache_data(ttl=300)
 def load_gsheet():
-    """
-    直接从 Streamlit secrets 读取 Google Sheet CSV URL
-    """
-    url = st.secrets["gsheet_url"]  # 注意：这里用强制读取，不再 get()
+    url = st.secrets["gsheet_url"]
 
-    df = pd.read_csv(url)
+    csv_url = to_csv_url(url)
+
+    df = pd.read_csv(csv_url)
     return df
 
 

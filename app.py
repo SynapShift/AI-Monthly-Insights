@@ -45,7 +45,7 @@ def load_sheet_data():
 # 爬取 Follow-Builders 开源项目数据 (第二页数据)
 @st.cache_data(ttl=3600)
 def fetch_builder_feeds():
-    # 注意：这里使用了该项目最新的动态 feed 地址
+    # 使用该项目最新的动态 feed 地址
     base_url = "https://raw.githubusercontent.com/zarazhangrui/follow-builders/main/"
     feeds = {
         "Twitter": base_url + "feed-x.json",
@@ -59,25 +59,26 @@ def fetch_builder_feeds():
             if r.status_code == 200:
                 raw_data = r.json()
                 
-                # 针对 Twitter (X) 的特殊嵌套结构进行拍平处理
-                if key == "Twitter" and isinstance(raw_data, list):
+                # --- 针对 Twitter (X) 的解析 ---
+                if key == "Twitter":
+                    # 注意：根据你发的 JSON，数据在 raw_data["x"] 里面
+                    builders_list = raw_data.get("x", [])
                     flattened_x = []
-                    for builder in raw_data:
+                    for builder in builders_list:
                         name = builder.get('name', 'Unknown')
                         handle = builder.get('handle', 'unknown')
-                        # 提取该博主下的所有推文并注入博主信息
                         for tweet in builder.get('tweets', []):
                             tweet['author_name'] = name
                             tweet['author_handle'] = handle
                             flattened_x.append(tweet)
-                    # 按时间倒序排列（最新的在前）
+                    # 按时间倒序
                     results["Twitter"] = sorted(flattened_x, key=lambda x: x.get('createdAt', ''), reverse=True)
                 
-                # 针对 Podcasts 的处理
+                # --- 针对 Podcasts 的解析 ---
                 elif key == "Podcasts":
-                    results["Podcasts"] = raw_data
-        except Exception as e:
-            print(f"Error fetching {key}: {e}")
+                    # 播客数据通常在 raw_data["podcasts"] 或直接是列表
+                    results["Podcasts"] = raw_data.get("podcasts", raw_data) if isinstance(raw_data, dict) else raw_data
+        except:
             continue
     return results
 

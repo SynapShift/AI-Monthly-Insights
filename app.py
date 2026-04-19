@@ -141,17 +141,125 @@ if selected == "AI 产品进展":
 
 
 ####============================================================
-# --- Tab 2: Podcast ---
+
+elif selected == "知名博主动态":
+    st.markdown("<h1 style='text-align: center; margin-bottom: 20px;'>🏗️ 知名博主动态</h1>", unsafe_allow_html=True)
+    
+    # ================= 1. 核心 UI 样式统一 =================
+    st.markdown("""
+    <style>
+    /* 容器边框美化 */
+    [data-testid="stVerticalBlockBorderWrapper"] {
+        border-radius: 16px !important;
+        border-color: #F2F2F7 !important;
+        background-color: #FFFFFF !important;
+        padding: 20px !important;
+    }
+
+    /* --- 核心：彻底抹平按钮和链接的差异 --- */
+    
+    /* 1. 针对 Streamlit Button 的定制（阅读全文按钮） */
+    div[data-testid="stButton"] button {
+        background-color: transparent !important;
+        color: #0071E3 !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        font-size: 12px !important; 
+        font-weight: 600 !important;
+        width: auto !important;
+        min-height: 20px !important; 
+        height: 20px !important;
+        line-height: 20px !important; 
+        box-shadow: none !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+        vertical-align: middle !important;
+    }
+    
+    div[data-testid="stButton"] button:hover {
+        text-decoration: underline !important;
+        background-color: transparent !important;
+        color: #0071E3 !important;
+    }
+
+    div[data-testid="stButton"] button:focus:not(:active) {
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    /* 2. 针对 HTML 链接的统一样式（收听原片、外部链接） */
+    .unified-link {
+        color: #0071E3 !important;
+        font-size: 12px !important; 
+        text-decoration: none !important;
+        font-weight: 600 !important;
+        height: 20px !important;
+        line-height: 20px !important; 
+        display: inline-flex;
+        align-items: center;
+        vertical-align: middle;
+    }
+    .unified-link:hover {
+        text-decoration: underline !important;
+    }
+
+    /* 强制列容器宽度紧凑并靠右 */
+    [data-testid="column"] {
+        display: flex !important;
+        justify-content: flex-end !important;
+        align-items: center !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    data_feeds = fetch_builder_feeds()
+    tab1, tab2, tab3 = st.tabs(["Twitter Insights", "Podcast Summary", "Official Blog"])
+
+    # --- Tab 1: Twitter ---
+    with tab1:
+        twitter_list = data_feeds.get("Twitter", [])
+        if twitter_list:
+            x_cols = st.columns(2)
+            for i, tweet in enumerate(twitter_list[:20]):
+                with x_cols[i % 2]:
+                    clean_text = html.unescape(tweet.get('text', '')).replace("\n", "<br>")
+                    st.markdown(f"""
+                    <div style="background:white; border:1px solid #F2F2F7; border-radius:16px; padding:20px; margin-bottom:16px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                            <b style="color:#E60012; font-size:14px;">{tweet.get('author_name')}</b>
+                            <span style="color:#888; font-size:11px;">@{tweet.get('author_handle')}</span>
+                        </div>
+                        <div style="font-size:13px; color:#1d1d1f; line-height:1.6;">{clean_text}</div>
+                        <div style="margin-top:15px; border-top: 1px solid #F5F5F7; padding-top:10px; display:flex; justify-content:space-between; align-items:center;">
+                            <span style="color:#86868b; font-size:10px;">🕒 {tweet.get('createdAt', '')[:10]}</span>
+                            <a href="{tweet.get('url', '#')}" target="_blank" class="unified-link">Original Post ↗</a>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+    # --- Tab 2: Podcast ---
     with tab2:
-        # (show_full_transcript 定义部分省略...)
+        @st.dialog("对话全文摘要", width="large")
+        def show_full_transcript(title, content):
+            st.markdown(f"### {title}")
+            st.markdown("---")
+            with st.container(height=500):
+                st.write(content)
+            if st.button("关闭窗口"):
+                st.rerun()
 
         pod_list = data_feeds.get("Podcasts", [])
         if pod_list:
             for pod in pod_list[:8]:
-                # (数据处理逻辑保持不变...)
+                raw_transcript = pod.get('transcript', '')
+                clean_text = re.sub(r'Speaker \d+ \| \d+:\d+ - \d+:\d+', '', raw_transcript).strip()
+                preview_summary = html.unescape(clean_text)[:1000] + "..."
+                title_clean = html.unescape(pod.get('title', 'Untitled'))
+                pub_date = str(pod.get('publishedAt', ''))[:10]
 
                 with st.container(border=True):
-                    # 卡片头部和主体保持不变
                     st.markdown(f"""
                     <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
                         <span style="border-left:3px solid #E60012; padding-left:8px; font-size:11px; font-weight:700; color:#1D1D1F;">{pod.get('name', 'PODCAST').upper()}</span>
@@ -166,16 +274,37 @@ if selected == "AI 产品进展":
                     <div style="border-top: 1px solid #F5F5F7; margin-bottom: -10px; margin-top: 10px;"></div>
                     """, unsafe_allow_html=True)
                     
-                    # --- 这里是关键！重新压缩间距 ---
-                    # 比例 0.84 让左侧占满，右侧两个 0.08 会强行靠拢
-                    c1, c2, c3 = st.columns([0.84, 0.08, 0.08])
+                    # 比例精准复原：[0.82, 0.09, 0.09]
+                    c1, c2, c3 = st.columns([0.82, 0.09, 0.09])
                     with c2:
                         if st.button("阅读全文 ↗", key=f"btn_{pod.get('url')}"):
                             show_full_transcript(title_clean, clean_text)
                     with c3:
-                        # 确保链接文字也用 12px 并且紧跟在后面
                         st.markdown(f'<a href="{pod.get("url","#")}" target="_blank" class="unified-link">收听原片 ↗</a>', unsafe_allow_html=True)
+        else:
+            st.info("💡 正在同步最新播客洞察...")
 
+    # --- Tab 3: Official Blog ---
+    with tab3:
+        blog_list = data_feeds.get("Blogs", [])
+        if blog_list:
+            for blog in blog_list[:8]:
+                raw_date = blog.get('publishedAt') or blog.get('date')
+                date_str = str(raw_date)[:10] if raw_date else "2026-04-19"
+                clean_blog = html.unescape(blog.get('content', blog.get('description', '')))[:400] + "..."
+                st.markdown(f"""
+                <div style="background:white; border:1px solid #F2F2F7; border-radius:16px; padding:20px; margin-bottom:16px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <span class="tag" style="background-color:#E8F2FF; color:#0071E3; margin:0; padding:4px 8px; border-radius:4px; font-size:11px;">{blog.get('name', 'Official Blog')}</span>
+                        <span style="color:#86868b; font-size:11px;">{date_str}</span>
+                    </div>
+                    <h4 style="margin:0 0 10px 0; font-size:17px; line-height:1.4; color:#1D1D1F;">{blog.get('title')}</h4>
+                    <p style="font-size:13px; color:#424245; line-height:1.6;">{clean_blog}</p>
+                    <div style="margin-top:12px; text-align:right; border-top:1px solid #F5F5F7; padding-top:10px; display:flex; justify-content:flex-end;">
+                        <a href="{blog.get('url','#')}" target="_blank" class="unified-link">阅读全文 ↗</a>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
 
                 
 ###==============================================

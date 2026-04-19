@@ -143,79 +143,65 @@ if selected == "AI 产品进展":
 
 
 elif selected == "知名博主动态":
-    st.markdown("<h1 style='text-align: center; margin-bottom: 20px;'>🏗️ 知名博主动态</h1>", unsafe_allow_html=True)
-    
-    # ================= 1. 核心 UI 样式统一 =================
     st.markdown("""
-    <style>
-    /* 容器边框美化 */
-    [data-testid="stVerticalBlockBorderWrapper"] {
-        border-radius: 16px !important;
-        border-color: #F2F2F7 !important;
-        background-color: #FFFFFF !important;
-        padding: 20px !important;
-    }
-
-    /* --- 核心：统一按钮与链接的样式 --- */
-    /* 1. 针对 Streamlit Button 的深度定制 */
-    div[data-testid="stButton"] button {
-        background-color: transparent !important;
-        color: #0071E3 !important; /* 统一蓝色 */
-        border: none !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        font-size: 12px !important;
-        font-weight: 600 !important;
-        width: auto !important;
-        min-height: unset !important;
-        line-height: 1.5 !important;
-        box-shadow: none !important;
-        display: inline-flex !important;
-        align-items: center !important;
-    }
+        <style>
+        /* 容器及边框 */
+        [data-testid="stVerticalBlockBorderWrapper"] {
+            border-radius: 16px !important;
+            border-color: #F2F2F7 !important;
+            background-color: #FFFFFF !important;
+            padding: 20px !important;
+        }
     
-    /* 按钮悬停效果 */
-    div[data-testid="stButton"] button:hover {
-        text-decoration: underline !important;
-        background-color: transparent !important;
-        color: #0071E3 !important;
-    }
-
-    /* 2. 针对 HTML 链接的统一样式 */
-    .unified-link {
-        color: #0071E3 !important;
-        font-size: 12px !important;
-        text-decoration: none !important;
-        font-weight: 600 !important;
-        display: inline-flex;
-        align-items: center;
-    }
-    .unified-link:hover {
-        text-decoration: underline !important;
-    }
-
-    /* 右对齐容器 */
-    .right-align-container {
-        display: flex;
-        justify-content: flex-end;
-        align-items: center;
-        gap: 15px; /* 两个链接之间的间距 */
-        margin-top: 10px;
-        padding-top: 10px;
-        border-top: 1px solid #F5F5F7;
-    }
-
-    /* 修正 Streamlit Column 内部的默认边距 */
-    [data-testid="column"] {
-        display: flex !important;
-        justify-content: flex-end !important;
-        align-items: center !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+        /* 核心：彻底抹平按钮和链接的差异 */
+        div[data-testid="stButton"] button {
+            background-color: transparent !important;
+            color: #0071E3 !important; 
+            border: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            font-size: 12px !important; /* 强制 12px */
+            font-weight: 600 !important;
+            width: auto !important;
+            min-height: 18px !important; /* 限制最小高度 */
+            height: 18px !important;
+            line-height: 18px !important;
+            box-shadow: none !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            vertical-align: middle !important;
+        }
+        
+        div[data-testid="stButton"] button:hover {
+            text-decoration: underline !important;
+            color: #0071E3 !important;
+        }
     
-    data_feeds = fetch_builder_feeds()
-    tab1, tab2, tab3 = st.tabs(["Twitter Insights", "Podcast Summary", "Official Blog"])
+        /* 统一样式的 HTML 链接类 */
+        .unified-link {
+            color: #0071E3 !important;
+            font-size: 12px !important; /* 强制 12px */
+            text-decoration: none !important;
+            font-weight: 600 !important;
+            line-height: 18px !important;
+            display: inline-flex;
+            align-items: center;
+            vertical-align: middle;
+        }
+        .unified-link:hover {
+            text-decoration: underline !important;
+        }
+    
+        /* 右对齐列容器修正 */
+        [data-testid="column"] {
+            display: flex !important;
+            justify-content: flex-end !important;
+            align-items: center !important;
+        }
+        </style>
+        """, unsafe_allow_html=True)   
+        
+    
 
     # --- Tab 1: Twitter (保持原样) ---
     with tab1:
@@ -239,21 +225,14 @@ elif selected == "知名博主动态":
                     </div>
                     """, unsafe_allow_html=True)
 
-    # --- Tab 2: Podcast (修改对齐和样式) ---
-    with tab2:
-        @st.dialog("对话全文摘要", width="large")
-        def show_full_transcript(title, content):
-            st.markdown(f"### {title}")
-            st.markdown("---")
-            with st.container(height=500):
-                st.write(content)
 
+# --- Tab 2: Podcast ---
+    with tab2:
+        # (show_full_transcript 定义保持不变...)
         pod_list = data_feeds.get("Podcasts", [])
         if pod_list:
             for pod in pod_list[:8]:
-                raw_transcript = pod.get('transcript', '')
-                clean_text = re.sub(r'Speaker \d+ \| \d+:\d+ - \d+:\d+', '', raw_transcript).strip()
-                preview_summary = html.unescape(clean_text)[:1000] + "..."
+                # (数据清洗部分保持不变...)
                 title_clean = html.unescape(pod.get('title', 'Untitled'))
                 pub_date = str(pod.get('publishedAt', ''))[:10]
 
@@ -269,19 +248,23 @@ elif selected == "知名博主动态":
                             <span style="color:#E60012; font-weight:700; font-size:10px; margin-right:6px;">KEY INSIGHT:</span>{preview_summary}
                         </p>
                     </div>
-                    <div style="border-top: 1px solid #F5F5F7; margin-bottom: -10px;"></div>
+                    <div style="border-top: 1px solid #F5F5F7; margin-bottom: -10px; margin-top: 10px;"></div>
                     """, unsafe_allow_html=True)
                     
-                    # 使用较窄的列比例，迫使两个按钮靠右并排
-                    _, c2, c3 = st.columns([0.65, 0.21, 0.14])
+                    # 调整列宽：让 c2 和 c3 尽量靠右并紧凑
+                    c1, c2, c3 = st.columns([0.7, 0.16, 0.14]) 
                     with c2:
-                        if st.button("阅读全文摘要 ›", key=f"btn_{pod.get('url')}"):
+                        # 修改文字为“阅读全文”，并添加箭头符号以对齐风格
+                        if st.button("阅读全文 ›", key=f"btn_{pod.get('url')}"):
                             show_full_transcript(title_clean, clean_text)
                     with c3:
+                        # 确保链接也使用同样的 class
                         st.markdown(f'<a href="{pod.get("url","#")}" target="_blank" class="unified-link">收听原片 ↗</a>', unsafe_allow_html=True)
-        else:
-            st.info("💡 正在同步最新播客洞察...")
 
+
+
+
+    
     # --- Tab 3: Official Blog (修改对齐和样式) ---
     with tab3:
         blog_list = data_feeds.get("Blogs", [])

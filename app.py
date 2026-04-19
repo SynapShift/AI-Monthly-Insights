@@ -92,4 +92,40 @@ if selected == "AI 产品进展":
                             <span class="tag tag-highlight">{row['分类']}</span>
                             <span class="tag">{row['地域']}</span>
                         </div>
-                        <p style="color: #424245; line-height: 1.5; font-size: 14px; height: 60px; overflow: hidden; display: -
+                        <p style="color: #424245; line-height: 1.5; font-size: 14px; height: 60px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">{row['核心特点']}</p>
+                        <div class="insight-quote" style="margin-top: 10px;">
+                            <div style="font-size: 12px; font-weight: 700; color: #1d1d1f; margin-bottom: 4px;">市场反馈</div>
+                            <div style="font-size: 13px; color: #6e6e73;">{row['市场反响']}</div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+    else:
+        st.warning("请检查数据配置...")
+
+elif selected == "知名博主动态":
+    st.markdown("<h1 style='text-align: center; margin-top: 20px;'>📢 业界动态：Follow Builders</h1>", unsafe_allow_html=True)
+    report_content = fetch_github_builders_report()
+    
+    if "###" in report_content:
+        sections = report_content.split("###")[1:]
+        cols_per_row = 2
+        for i in range(0, len(sections), cols_per_row):
+            row_data = sections[i : i + cols_per_row]
+            cols = st.columns(cols_per_row)
+            for index, section in enumerate(row_data):
+                with cols[index]:
+                    st.markdown(f"""
+                    <div class="product-card">
+                        <div style="color: #E60012; font-weight: 600; font-size: 14px; margin-bottom: 10px;">推送更新</div>
+                        <div style="font-size: 14px; color: #1d1d1f; line-height: 1.6;">{section[:500] + '...' if len(section) > 500 else section}</div>
+                        <div style="margin-top: 15px; text-align: right;">
+                            <a href="https://github.com/zarazhangrui/follow-builders" target="_blank" style="color: #0066CC; text-decoration: none; font-size: 12px;">查看原文 →</a>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+    else:
+        st.markdown(f"<div class='insight-quote'>{report_content}</div>", unsafe_allow_html=True)
+
+elif selected == "AI 学习资料库":
+    st.markdown("<h1 style='text-align: center; margin-top: 20px;'>📚 知识库</h1>", unsafe_allow_html=True)
+    st.info("资料库同步中...")

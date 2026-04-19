@@ -211,72 +211,37 @@ elif selected == "知名博主动态":
                 </div>
                 """, unsafe_allow_html=True)
 
-
-   
-
-
     with tab3:
         blog_list = data_feeds.get("Blogs", [])
         if blog_list:
             for blog in blog_list[:8]:
+                # 1. 尝试从多个可能的字段取日期
+                # 优先级：publishedAt > date > 抓取时间(generatedAt)
                 raw_date = blog.get('publishedAt') or blog.get('date')
-                date_str = str(raw_date)[:10] if raw_date else "2026-04-19"
                 
-                # 清理摘要
-                blog_content = blog.get('content', blog.get('description', ''))
-                clean_blog = html.unescape(blog_content)[:180] + "..."
+                if raw_date:
+                    # 转换格式：处理类似 2026-04-10T... 或直接是日期字符串的情况
+                    date_str = str(raw_date)[:10] 
+                else:
+                    # 如果博客本身没日期，尝试用整个文件的生成时间
+                    date_str = data_feeds.get("generatedAt", "2026-04-19")[:10]
+    
+                clean_blog = html.unescape(blog.get('content', blog.get('description', '')))[:200] + "..."
     
                 st.markdown(f"""
-                <div style="
-                    background: white; 
-                    border: 1px solid #F2F2F7; 
-                    border-radius: 16px; 
-                    padding: 20px; 
-                    margin-bottom: 16px; 
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-                ">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                        <span style="
-                            background: #F2F2F7; 
-                            color: #1D1D1F; 
-                            padding: 4px 10px; 
-                            border-radius: 6px; 
-                            font-size: 11px; 
-                            font-weight: 600;
-                            letter-spacing: 0.5px;
-                        ">
-                            {blog.get('name', 'OFFICIAL BLOG').upper()}
-                        </span>
-                        <span style="color: #86868b; font-size: 11px;">{date_str}</span>
+                <div class="product-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span class="tag" style="background-color:#E8F2FF; color:#0071E3;">{blog.get('name', 'Official Blog')}</span>
+                        <span style="color:#86868b; font-size:11px; font-weight:500;">📅 {date_str}</span>
                     </div>
-                    
-                    <h4 style="margin: 0 0 10px 0; font-size: 17px; color: #1D1D1F; line-height: 1.4;">
-                        {blog.get('title')}
-                    </h4>
-                    
-                    <p style="font-size: 13px; color: #424245; line-height: 1.6; margin-bottom: 15px;">
-                        {clean_blog}
-                    </p>
-                    
-                    <div style="display: flex; justify-content: flex-end; align-items: center; border-top: 1px solid #F2F2F7; padding-top: 12px;">
-                        <a href="{blog.get('url','#')}" target="_blank" style="
-                            color: #0071e3; 
-                            font-size: 12px; 
-                            text-decoration: none; 
-                            font-weight: 500;
-                        ">
-                            阅读全文 <span style="font-size: 14px;">›</span>
-                        </a>
+                    <h4 style="margin:12px 0 8px 0; font-size:16px; line-height:1.4;">{blog.get('title')}</h4>
+                    <p style="font-size:13px; color:#424245; line-height:1.6;">{clean_blog}</p>
+                    <div style="margin-top:12px; text-align:right; border-top:1px solid #F5F5F7; padding-top:10px;">
+                        <a href="{blog.get('url','#')}" target="_blank" style="color:#0071e3; font-size:12px; text-decoration:none; font-weight:600;">阅读全文 →</a>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
 
- 
-
-
-  
-  
-     
 
 # --- 页面 3: 学习资料库 ---
 elif selected == "AI 学习资料库":

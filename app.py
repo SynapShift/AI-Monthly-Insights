@@ -162,8 +162,6 @@ elif selected == "知名博主动态":
     st.markdown("<h1 style='text-align: center; margin-bottom: 20px;'>🏗️ 建造者动态</h1>", unsafe_allow_html=True)
     
     data_feeds = fetch_builder_feeds()
-    
-    # 确保这里定义了 3 个变量
     tab1, tab2, tab3 = st.tabs(["🐦 Twitter 洞察", "🎧 播客摘要", "📝 官方博客"])
     
     with tab1:
@@ -172,61 +170,66 @@ elif selected == "知名博主动态":
             x_cols = st.columns(2)
             for i, tweet in enumerate(twitter_list[:20]):
                 with x_cols[i % 2]:
-                    raw_text = html.unescape(tweet.get('text', ''))
-                    clean_text = raw_text.replace("\n", "<br>")
+                    # 修复乱码与换行
+                    clean_text = html.unescape(tweet.get('text', '')).replace("\n", "<br>")
                     st.markdown(f"""
-                    <div class="product-card" style="min-height:160px; padding:20px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                            <b style="color:#E60012; font-size:14px;">{tweet.get('author_name')}</b>
-                            <span style="color:#888; font-size:11px;">@{tweet.get('author_handle')}</span>
-                        </div>
-                        <div style="font-size:13px; color:#1d1d1f; line-height:1.6;">{clean_text}</div>
-                        <div style="margin-top:15px; border-top: 1px solid #F5F5F7; padding-top:10px; text-align:right;">
-                            <a href="{tweet.get('url', '#')}" target="_blank" style="color:#0071e3; font-size:11px; text-decoration:none;">查看原文 →</a>
-                        </div>
+                    <div class="product-card" style="min-height:160px;">
+                        <b style="color:#E60012;">{tweet.get('author_name')}</b> <span style="color:#888; font-size:11px;">@{tweet.get('author_handle')}</span>
+                        <div style="font-size:13px; margin-top:10px;">{clean_text}</div>
+                        <div style="margin-top:10px; text-align:right;"><a href="{tweet.get('url','#')}" target="_blank" style="color:#0071e3; font-size:11px;">原文 →</a></div>
                     </div>
                     """, unsafe_allow_html=True)
-        else:
-            st.info("💡 正在同步最新 Twitter 动态...")
 
     with tab2:
         pod_list = data_feeds.get("Podcasts", [])
         if pod_list:
             for pod in pod_list[:8]:
-                # 适配 transcript 字段
-                summary = pod.get('transcript', '')[:250].replace("\n", " ") + "..."
+                # --- 文本清洗：去掉 "Speaker 1 | 00:00" 这种干扰信息 ---
+                raw_transcript = pod.get('transcript', '')
+                import re
+                # 正则去掉 Speaker 标识
+                clean_summary = re.sub(r'Speaker \d+ \| \d+:\d+ - \d+:\d+', '', raw_transcript)
+                clean_summary = clean_summary.strip()[:250] + "..."
+                
+                # 修复日期报错逻辑
+                pub_date = pod.get('publishedAt')
+                date_str = str(pub_date)[:10] if pub_date else "近期更新"
+
                 st.markdown(f"""
                 <div class="product-card" style="border-left: 4px solid #E60012;">
-                    <div style="font-size:12px;color:#86868b;font-weight:600;">{pod.get('name')} · {pod.get('publishedAt','')[:10]}</div>
-                    <h4 style="margin:10px 0; font-size:16px;">{pod.get('title')}</h4>
-                    <div class="insight-quote"><b>内容摘要：</b>{summary}</div>
-                    <div style="margin-top:10px; text-align:right;">
-                        <a href="{pod.get('url','#')}" target="_blank" style="color:#0071e3; font-size:12px;">收听原文 →</a>
-                    </div>
+                    <div style="font-size:12px;color:#86868b;">{pod.get('name')} · {date_str}</div>
+                    <h4 style="margin:10px 0;">{pod.get('title')}</h4>
+                    <div class="insight-quote"><b>对话要点：</b>{clean_summary}</div>
+                    <div style="margin-top:10px; text-align:right;"><a href="{pod.get('url','#')}" target="_blank" style="color:#0071e3; font-size:12px;">收听原文 →</a></div>
                 </div>
                 """, unsafe_allow_html=True)
-        else:
-            st.info("💡 正在获取播客数据...")
 
-    with tab3:  # <-- 注意这一行的缩进必须和 with tab1、with tab2 完全对齐
+    with tab3:
         blog_list = data_feeds.get("Blogs", [])
         if blog_list:
             for blog in blog_list[:8]:
+                # 修复日期报错逻辑
+                pub_date = blog.get('publishedAt')
+                date_str = str(pub_date)[:10] if pub_date else "近期发布"
+                
+                # 博客内容清洗
+                blog_content = blog.get('content', blog.get('description', ''))
+                clean_blog = html.unescape(blog_content)[:200] + "..."
+
                 st.markdown(f"""
                 <div class="product-card">
                     <div style="display:flex; justify-content:space-between;">
-                        <span class="tag" style="background-color:#E8F2FF; color:#0071E3;">{blog.get('name', 'Blog')}</span>
-                        <span class="date-text">{blog.get('publishedAt', '')[:10]}</span>
+                        <span class="tag" style="background-color:#E8F2FF; color:#0071E3;">{blog.get('name', 'Official Blog')}</span>
+                        <span class="date-text">{date_str}</span>
                     </div>
-                    <h4 style="margin:10px 0; font-size:16px;">{blog.get('title')}</h4>
-                    <p style="font-size:13px; color:#424245;">{blog.get('description', '')[:150]}...</p>
-                    <div style="margin-top:10px; text-align:right;">
+                    <h4 style="margin:10px 0;">{blog.get('title')}</h4>
+                    <p style="font-size:13px; color:#424245;">{clean_blog}</p>
+                    <div style="margin-top:10px; text-align:right; border-top:1px solid #F5F5F7; padding-top:8px;">
                         <a href="{blog.get('url','#')}" target="_blank" style="color:#0071e3; font-size:12px;">阅读全文 →</a>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
-        else:
-            st.info("💡 正在获取官方博客数据...")
+  
      
 
 # --- 页面 3: 学习资料库 ---

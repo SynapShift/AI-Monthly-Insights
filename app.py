@@ -189,23 +189,26 @@ elif selected == "知名博主动态":
 
 
 
-
     with tab2:
             pod_list = data_feeds.get("Podcasts", [])
             if pod_list:
                 for pod in pod_list[:8]:
-                    # --- 1. 文本清洗与摘要提取 ---
+                    # 1. 文本清洗与摘要提取
                     import re
                     raw_transcript = pod.get('transcript', '')
                     # 去掉 Speaker 标识符
                     clean_summary = re.sub(r'Speaker \d+ \| \d+:\d+ - \d+:\d+', '', raw_transcript)
-                    clean_summary = clean_summary.strip()[:240] + "..."
+                    # 使用 html.escape 确保文本内容不会被错误解析为 HTML
+                    clean_summary = html.escape(clean_summary.strip())[:240] + "..."
                     
-                    # --- 2. 时间处理 ---
+                    # 2. 时间处理
                     pub_date = pod.get('publishedAt')
                     date_str = str(pub_date)[:10] if pub_date else "2026-04-10"
+                    
+                    # 3. 获取标题并清洗
+                    safe_title = html.escape(pod.get('title', 'Untitled'))
     
-                    # --- 3. 渲染精致的卡片布局 ---
+                    # 4. 渲染卡片：移除可能导致乱码的图标，改用更稳健的 CSS 设计
                     st.markdown(f"""
                     <div style="
                         background: #FFFFFF; 
@@ -216,19 +219,24 @@ elif selected == "知名博主动态":
                         box-shadow: 0 1px 3px rgba(0,0,0,0.02);
                     ">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <span style="font-size: 16px;">🎙️</span>
-                                <span style="color: #1D1D1F; font-size: 12px; font-weight: 600; letter-spacing: 0.3px;">
-                                    {pod.get('name', 'PODCAST').upper()}
+                            <div style="display: flex; align-items: center;">
+                                <span style="
+                                    border-left: 3px solid #E60012; 
+                                    padding-left: 8px; 
+                                    color: #1D1D1F; 
+                                    font-size: 11px; 
+                                    font-weight: 700; 
+                                    text-transform: uppercase;
+                                    letter-spacing: 0.5px;
+                                ">
+                                    {pod.get('name', 'PODCAST')}
                                 </span>
                             </div>
-                            <span style="color: #86868B; font-size: 11px; font-family: -apple-system, sans-serif;">
-                                {date_str}
-                            </span>
+                            <span style="color: #86868B; font-size: 11px;">{date_str}</span>
                         </div>
     
                         <h4 style="margin: 0 0 12px 0; font-size: 17px; color: #1D1D1F; line-height: 1.4; font-weight: 600;">
-                            {pod.get('title')}
+                            {safe_title}
                         </h4>
     
                         <div style="
@@ -238,28 +246,24 @@ elif selected == "知名博主动态":
                             border: 1px solid #F2F2F7;
                             margin-bottom: 16px;
                         ">
-                            <p style="margin: 0; font-size: 13px; color: #424245; line-height: 1.6; font-style: normal;">
-                                <span style="color: #E60012; font-weight: 600; font-size: 11px; margin-right: 4px;">KEY INSIGHT:</span>
+                            <p style="margin: 0; font-size: 13px; color: #424245; line-height: 1.6;">
+                                <span style="color: #E60012; font-weight: 700; font-size: 10px; margin-right: 6px;">KEY INSIGHT:</span>
                                 {clean_summary}
                             </p>
                         </div>
     
-                        <div style="display: flex; justify-content: flex-end; align-items: center; border-top: 1px solid #F2F2F7; padding-top: 12px;">
+                        <div style="display: flex; justify-content: flex-end; align-items: center; border-top: 1px solid #F5F5F7; padding-top: 12px;">
                             <a href="{pod.get('url','#')}" target="_blank" style="
                                 color: #0071E3; 
                                 font-size: 12px; 
                                 text-decoration: none; 
                                 font-weight: 600;
-                                display: flex;
-                                align-items: center;
                             ">
-                                查看对话全文 <span style="font-size: 14px; margin-left: 2px;">›</span>
+                                VIEW FULL TRANSCRIPT &gt;
                             </a>
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
-            else:
-                st.info("💡 正在同步最新播客洞察...")
 
 
 

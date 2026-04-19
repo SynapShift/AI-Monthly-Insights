@@ -156,54 +156,57 @@ elif selected == "知名博主动态":
     }
 
     /* --- 核心：彻底抹平按钮和链接的差异 --- */
-    /* 1. 针对 Streamlit Button 的深度定制 */
+    
+    /* 1. 针对 Streamlit Button 的定制（阅读全文按钮） */
     div[data-testid="stButton"] button {
         background-color: transparent !important;
-        color: #0071E3 !important; /* 统一蓝色 */
+        color: #0071E3 !important;
         border: none !important;
         padding: 0 !important;
         margin: 0 !important;
-        font-size: 12px !important; /* 统一 12px */
+        font-size: 12px !important; 
         font-weight: 600 !important;
         width: auto !important;
-        min-height: 18px !important; /* 限制最小高度，防止撑开卡片 */
-        height: 18px !important;
-        line-height: 18px !important;
+        min-height: 20px !important; 
+        height: 20px !important;
+        line-height: 20px !important; 
         box-shadow: none !important;
         display: inline-flex !important;
         align-items: center !important;
+        justify-content: flex-end !important;
         vertical-align: middle !important;
+        gap: 2px !important;
     }
     
-    /* 按钮悬停效果 */
     div[data-testid="stButton"] button:hover {
         text-decoration: underline !important;
         background-color: transparent !important;
         color: #0071E3 !important;
     }
 
-    /* 消除点击时的焦点阴影 */
     div[data-testid="stButton"] button:focus:not(:active) {
         border: none !important;
         box-shadow: none !important;
     }
 
-    /* 2. 针对 HTML 链接的统一样式 */
+    /* 2. 针对 HTML 链接的统一样式（收听原片、外部链接） */
     .unified-link {
         color: #0071E3 !important;
-        font-size: 12px !important; /* 统一 12px */
+        font-size: 12px !important; 
         text-decoration: none !important;
         font-weight: 600 !important;
-        line-height: 18px !important;
+        height: 20px !important;
+        line-height: 20px !important; 
         display: inline-flex;
         align-items: center;
         vertical-align: middle;
+        gap: 2px;
     }
     .unified-link:hover {
         text-decoration: underline !important;
     }
 
-    /* 修正 Streamlit Column 内部的默认对齐方式，强制靠右 */
+    /* 强制列容器宽度紧凑并靠右 */
     [data-testid="column"] {
         display: flex !important;
         justify-content: flex-end !important;
@@ -272,15 +275,13 @@ elif selected == "知名博主动态":
                     <div style="border-top: 1px solid #F5F5F7; margin-bottom: -10px; margin-top: 10px;"></div>
                     """, unsafe_allow_html=True)
                     
-                    # 强行缩窄右侧两列，保证文字在右下角紧密排列
-                    c1, c2, c3 = st.columns([0.82, 0.09, 0.09])
+                    # 比例调整：c1 占左侧大部分，c2 和 c3 紧凑放在右侧
+                    c1, c2, c3 = st.columns([0.74, 0.13, 0.13])
                     with c2:
-                        # 标签改为“阅读全文”，并使用与链接风格类似的右箭头
-                        if st.button("阅读全文 ›", key=f"btn_{pod.get('url')}"):
+                        if st.button("阅读全文 ↗", key=f"btn_{pod.get('url')}"):
                             show_full_transcript(title_clean, clean_text)
                     with c3:
                         st.markdown(f'<a href="{pod.get("url","#")}" target="_blank" class="unified-link">收听原片 ↗</a>', unsafe_allow_html=True)
-
         else:
             st.info("💡 正在同步最新播客洞察...")
 

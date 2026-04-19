@@ -10,278 +10,273 @@ st.set_page_config(
     page_icon="⚡"
 )
 
-# ---------- 全局设计系统 (Apple Inspired) ----------
+# ---------- 全新设计系统 CSS (Modern Glassmorphism + Editorial) ----------
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
 
     :root {
-        --bg-primary: #f5f5f7;
-        --bg-secondary: #ffffff;
-        --bg-tertiary: #fbfbfd;
-        --text-primary: #1d1d1f;
-        --text-secondary: #86868b;
-        --text-tertiary: #6e6e73;
-        --border-light: rgba(0, 0, 0, 0.04);
-        --border-medium: rgba(0, 0, 0, 0.08);
-        --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.02), 0 0 0 1px rgba(0, 0, 0, 0.02);
-        --shadow-md: 0 8px 20px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.02);
-        --accent-blue: #0071e3;
-        --accent-green: #28cd41;
-        --accent-orange: #ff9f0a;
-        --accent-purple: #af52de;
-        --transition: all 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+        --bg-gradient: linear-gradient(145deg, #f9fafc 0%, #f0f2f7 100%);
+        --glass-bg: rgba(255, 255, 255, 0.75);
+        --glass-border: rgba(255, 255, 255, 0.5);
+        --text-primary: #0b0c0e;
+        --text-secondary: #5b6778;
+        --text-tertiary: #8a95a5;
+        --accent-blue: #0066ff;
+        --accent-green: #00b894;
+        --accent-orange: #e67e22;
+        --accent-purple: #8e44ad;
+        --shadow-sm: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+        --shadow-md: 0 20px 30px -10px rgba(0, 0, 0, 0.1), 0 10px 20px -10px rgba(0, 0, 0, 0.04);
+        --shadow-glow: 0 0 0 1px rgba(0, 102, 255, 0.1), 0 8px 20px rgba(0, 102, 255, 0.15);
+        --transition: all 0.25s cubic-bezier(0.2, 0.0, 0.0, 1.0);
     }
 
     .stApp {
-        background-color: var(--bg-primary);
+        background: var(--bg-gradient);
+        background-attachment: fixed;
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
+    /* 隐藏默认元素 */
     [data-testid="stSidebar"] { display: none; }
     [data-testid="stSidebarNav"] { display: none; }
     header { visibility: hidden; }
     footer { visibility: hidden; }
 
     .main .block-container {
-        max-width: 1400px;
-        padding-top: 2rem;
+        max-width: 1300px;
+        padding-top: 1.5rem;
     }
 
-    .page-header {
-        margin-bottom: 2.5rem;
-        border-bottom: 1px solid var(--border-medium);
+    /* ----- 品牌头部 ----- */
+    .brand-header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        margin-bottom: 2rem;
         padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
     }
-    .page-header h1 {
-        font-weight: 650 !important;
-        letter-spacing: -0.02em !important;
-        color: var(--text-primary) !important;
-        margin-bottom: 0.25rem !important;
+    .brand-title {
+        font-size: 2.2rem;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        background: linear-gradient(135deg, #0b0c0e 0%, #3a4a6b 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
     }
-    .page-header p {
-        color: var(--text-secondary);
-        font-size: 1rem;
-        font-weight: 400;
-    }
-
-    .filter-label {
-        font-size: 0.8rem;
-        font-weight: 600;
-        color: var(--text-tertiary);
-        text-transform: uppercase;
-        letter-spacing: 0.03em;
-        margin-bottom: 0.25rem;
-    }
-
-    /* 统计按钮默认样式 */
-    .stButton > button {
-        width: 100%;
-        background: var(--bg-secondary);
-        border: 1px solid var(--border-light) !important;
-        border-radius: 20px !important;
-        padding: 1.5rem 0.5rem !important;
-        box-shadow: var(--shadow-sm);
-        transition: var(--transition);
-        color: var(--text-primary) !important;
-        font-weight: 500;
-    }
-    .stButton > button:hover {
-        box-shadow: var(--shadow-md) !important;
-        transform: scale(1.01);
-        border-color: var(--accent-blue) !important;
-    }
-
-    /* 信息流卡片 */
-    .feed-card {
-        display: flex;
-        background: var(--bg-secondary);
-        padding: 1.75rem;
-        border-radius: 24px;
-        margin-bottom: 1.25rem;
-        border: 1px solid var(--border-light);
-        box-shadow: var(--shadow-sm);
-        transition: var(--transition);
-    }
-    .feed-card:hover {
-        box-shadow: var(--shadow-md);
-        border-color: var(--border-medium);
-    }
-    .card-icon-area {
-        flex-shrink: 0;
-        width: 64px;
-        height: 64px;
-        border-radius: 18px;
-        margin-right: 1.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 2rem;
-        background: var(--bg-tertiary);
-        border: 1px solid var(--border-light);
-    }
-    .card-title-main {
-        font-size: 1.25rem;
-        font-weight: 600;
-        letter-spacing: -0.01em;
-        color: var(--text-primary);
-        margin-bottom: 0.75rem;
-        line-height: 1.4;
-    }
-    .feature-block {
-        background-color: var(--bg-tertiary);
-        border-radius: 14px;
-        padding: 1rem 1.25rem;
-        margin: 0.75rem 0 0.5rem 0;
-        border: 1px solid var(--border-light);
-    }
-    .feature-label {
-        font-size: 0.7rem;
-        font-weight: 600;
-        color: var(--text-tertiary);
-        text-transform: uppercase;
-        letter-spacing: 0.03em;
-        margin-bottom: 0.4rem;
-        display: block;
-    }
-    .feature-content {
+    .brand-sub {
         font-size: 0.95rem;
-        color: var(--text-primary);
-        font-weight: 450;
-        line-height: 1.5;
-    }
-    .meta-text {
-        font-size: 0.8rem;
         color: var(--text-tertiary);
         font-weight: 400;
-        display: flex;
-        align-items: center;
-        gap: 6px;
+        margin-left: 0.75rem;
     }
 
-    /* 博主卡片 */
-    .blogger-card {
-        background: var(--bg-secondary);
-        border-radius: 20px;
-        padding: 1.5rem;
-        border: 1px solid var(--border-light);
+    /* ----- 筛选栏融合在标题行 ----- */
+    .filter-row {
+        display: flex;
+        gap: 1.5rem;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+    .filter-chip {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        border-radius: 40px;
+        padding: 0.4rem 0.8rem 0.4rem 1.5rem;
         box-shadow: var(--shadow-sm);
-        margin-bottom: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .filter-chip span {
+        color: var(--text-secondary);
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+    .filter-chip .stSelectbox {
+        min-width: 140px;
+    }
+    .filter-chip div[data-baseweb="select"] > div {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    /* ----- 统计卡片 (毛玻璃大数字) ----- */
+    .stat-grid {
+        display: flex;
+        gap: 1.2rem;
+        margin-bottom: 2.5rem;
+    }
+    .stat-item {
+        flex: 1;
+        background: var(--glass-bg);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--glass-border);
+        border-radius: 32px;
+        padding: 1.8rem 1rem;
+        box-shadow: var(--shadow-sm);
         transition: var(--transition);
+        text-align: center;
     }
-    .blogger-card:hover {
+    .stat-item:hover {
+        box-shadow: var(--shadow-md), var(--shadow-glow);
+        transform: translateY(-4px);
+        border-color: rgba(0, 102, 255, 0.3);
+    }
+    .stat-number {
+        font-size: 3.2rem;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        color: var(--text-primary);
+        line-height: 1.1;
+        margin-bottom: 0.3rem;
+    }
+    .stat-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-tertiary);
+    }
+
+    /* ----- 胶囊式分类切换器 (替代大按钮) ----- */
+    .category-tabs {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        padding-bottom: 0.8rem;
+    }
+    .cat-pill {
+        padding: 0.6rem 1.5rem;
+        border-radius: 40px;
+        font-weight: 550;
+        font-size: 0.95rem;
+        background: transparent;
+        color: var(--text-secondary);
+        transition: var(--transition);
+        cursor: pointer;
+        border: none;
+        text-align: center;
+    }
+    .cat-pill:hover {
+        background: rgba(0,0,0,0.03);
+        color: var(--text-primary);
+    }
+    .cat-pill.active {
+        background: var(--text-primary);
+        color: white;
+        box-shadow: var(--shadow-glow);
+    }
+
+    /* ----- 信息流卡片 (编辑风格) ----- */
+    .feed-card-new {
+        display: flex;
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        border-radius: 28px;
+        padding: 1.5rem;
+        margin-bottom: 1.2rem;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+    .feed-card-new:hover {
         box-shadow: var(--shadow-md);
+        border-color: rgba(0, 102, 255, 0.2);
     }
-    .blogger-name {
+    /* 左侧彩色装饰条 */
+    .card-accent-bar {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 6px;
+        background: var(--accent-color, #ccc);
+    }
+    .card-content {
+        margin-left: 0.5rem;
+        flex: 1;
+    }
+    .card-meta {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 0.5rem;
+        font-size: 0.8rem;
+        color: var(--text-tertiary);
+    }
+    .card-company {
         font-weight: 650;
         font-size: 1.3rem;
         color: var(--text-primary);
-        margin-bottom: 0.25rem;
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.01em;
+    }
+    .card-progress {
+        font-size: 1rem;
+        color: var(--text-secondary);
+        margin-bottom: 1rem;
+        line-height: 1.5;
+    }
+    .feature-block-new {
+        background: rgba(0,0,0,0.02);
+        border-radius: 18px;
+        padding: 1rem 1.2rem;
+        margin: 0.8rem 0;
+        border-left: 3px solid var(--accent-blue);
+    }
+    .feature-label-new {
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--text-tertiary);
+        margin-bottom: 0.3rem;
+    }
+    .feature-text {
+        font-size: 0.95rem;
+        color: var(--text-primary);
+        line-height: 1.5;
+    }
+    .feedback-text {
+        font-size: 0.85rem;
+        color: var(--text-tertiary);
+        margin-top: 0.5rem;
         display: flex;
         align-items: center;
-        gap: 8px;
-    }
-    .blogger-handle {
-        color: var(--accent-blue);
-        font-weight: 500;
-        font-size: 0.9rem;
-    }
-    .blogger-quote {
-        margin-top: 1rem;
-        padding: 1rem 1.25rem;
-        background: var(--bg-tertiary);
-        border-radius: 16px;
-        border-left: 4px solid var(--accent-blue);
-        font-style: normal;
-        color: var(--text-primary);
-        line-height: 1.6;
+        gap: 5px;
     }
 
-    /* 学习资料卡片 */
-    .resource-card {
-        background: var(--bg-secondary);
-        border-radius: 20px;
-        padding: 1.5rem;
-        border: 1px solid var(--border-light);
-        box-shadow: var(--shadow-sm);
-        height: 100%;
-        transition: var(--transition);
-        display: flex;
-        flex-direction: column;
-    }
-    .resource-card:hover {
-        box-shadow: var(--shadow-md);
-        transform: translateY(-4px);
-    }
-    .resource-icon {
-        font-size: 2.2rem;
-        margin-bottom: 1rem;
-    }
-    .resource-title {
-        font-weight: 650;
-        font-size: 1.2rem;
-        color: var(--text-primary);
-        margin-bottom: 0.5rem;
-    }
-    .resource-desc {
-        color: var(--text-tertiary);
-        font-size: 0.9rem;
-        line-height: 1.5;
-        flex-grow: 1;
-        margin-bottom: 1.25rem;
-    }
-    .resource-link {
-        display: inline-block;
-        background: var(--accent-blue);
-        color: white !important;
-        padding: 0.5rem 1.2rem;
-        border-radius: 30px;
-        font-weight: 500;
-        font-size: 0.9rem;
-        text-decoration: none;
-        text-align: center;
-        transition: var(--transition);
+    /* 按钮等重置 */
+    .stButton > button {
+        background: transparent;
         border: none;
-        width: fit-content;
+        padding: 0;
     }
-    .resource-link:hover {
-        background: #005bb5;
-        text-decoration: none;
-    }
-
-    /* 标签页定制 */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 2.5rem;
-        border-bottom: 1px solid var(--border-light);
-        padding-bottom: 0;
-    }
-    .stTabs [data-baseweb="tab"] {
-        font-weight: 500;
-        font-size: 1.1rem;
-        color: var(--text-tertiary);
-        padding: 0.75rem 0.25rem;
-        border-radius: 0;
-        transition: var(--transition);
-    }
-    .stTabs [aria-selected="true"] {
-        color: var(--accent-blue) !important;
-        border-bottom: 3px solid var(--accent-blue);
-        font-weight: 600;
+    .stSelectbox label {
+        display: none;
     }
 
-    div[data-baseweb="select"] > div {
-        background-color: var(--bg-secondary) !important;
-        border-radius: 12px !important;
-        border: 1px solid var(--border-medium) !important;
-        box-shadow: var(--shadow-sm) !important;
-    }
-
-    .stInfo, .stWarning {
-        background: var(--bg-secondary) !important;
-        border-radius: 20px !important;
-        border: 1px solid var(--border-light) !important;
-        box-shadow: var(--shadow-sm) !important;
-        padding: 2rem !important;
+    /* 空状态 */
+    .stInfo {
+        background: var(--glass-bg) !important;
+        backdrop-filter: blur(12px);
+        border-radius: 28px !important;
+        border: 1px solid var(--glass-border) !important;
+        padding: 2.5rem !important;
+        text-align: center;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -342,57 +337,15 @@ def get_resource_data():
          "url": "https://jalammar.github.io/illustrated-transformer/", "tags": ["Transformer", "图解", "必读"]}
     ]
 
-# ---------- 组件 ----------
-def render_feed_cards(data):
-    if data.empty:
-        st.info("✨ 当前筛选条件下暂无数据")
-        return
-    for _, row in data.iterrows():
-        cat = row.get('分类', '未分类')
-        if cat == "基建":
-            icon, accent_color = "🏗️", "var(--accent-blue)"
-        elif cat == "金融":
-            icon, accent_color = "💰", "var(--accent-orange)"
-        else:
-            icon, accent_color = "🎨", "var(--accent-green)"
-
-        month_str = f"{row['日期'].year}年{row['日期'].month}月"
-        company_key = next((k for k in ['公司', 'Company', '企业'] if k in row), '公司')
-        company_name = row.get(company_key, '未知公司')
-        progress = row.get('进展', '暂无进展说明')
-        feature = row.get('核心特点', '暂无描述')
-        feedback = row.get('市场反响', '暂无评价')
-
-        st.markdown(f"""
-            <div class="feed-card">
-                <div class="card-icon-area" style="color: {accent_color};">
-                    {icon}
-                </div>
-                <div style="flex-grow: 1;">
-                    <div class="meta-text" style="margin-bottom: 0.25rem;">
-                        <span>📅 {month_str}</span>
-                        <span style="margin: 0 8px;">·</span>
-                        <span style="font-weight: 500;">{cat}</span>
-                    </div>
-                    <div class="card-title-main">
-                        {company_name}：{progress}
-                    </div>
-                    <div class="feature-block">
-                        <span class="feature-label">✨ 核心特点</span>
-                        <div class="feature-content">{feature}</div>
-                    </div>
-                    <div class="meta-text" style="margin-top: 0.5rem;">
-                        💬 {feedback}
-                    </div>
-                </div>
-            </div>
-        """, unsafe_allow_html=True)
-
+# ---------- 全新第一页 ----------
 def render_monthly_insights():
+    # 品牌头部（与筛选栏融合）
     st.markdown("""
-    <div class="page-header">
-        <h1>📆 月度 AI 进展 · 动态看板</h1>
-        <p>追踪全球 AI 基建、应用与金融领域的每月动态</p>
+    <div class="brand-header">
+        <div>
+            <span class="brand-title">⚡ AI Sentinel</span>
+            <span class="brand-sub">智能瞭望台 · 每日 AI 脉搏</span>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -407,19 +360,19 @@ def render_monthly_insights():
     month_options = sorted(all_data['选择月份'].unique().tolist(), reverse=True)
     region_col = next((c for c in all_data.columns if c in ['地域', '地区']), None)
 
+    # 筛选行（融合进设计）
     col1, col2 = st.columns([1, 1])
     with col1:
-        st.markdown('<div class="filter-label">📅 月份</div>', unsafe_allow_html=True)
+        st.markdown('<div style="margin-bottom: 0.5rem; font-weight: 600; color: var(--text-secondary);">📅 月份</div>', unsafe_allow_html=True)
         selected_month = st.selectbox("月份", month_options, label_visibility="collapsed")
     with col2:
+        st.markdown('<div style="margin-bottom: 0.5rem; font-weight: 600; color: var(--text-secondary);">🌐 地域</div>', unsafe_allow_html=True)
         if region_col:
             region_values = sorted(all_data[region_col].unique().tolist())
             region_options = ["全部地区"] + region_values
-            st.markdown('<div class="filter-label">🌐 地域</div>', unsafe_allow_html=True)
             selected_region = st.selectbox("地域", region_options, label_visibility="collapsed")
         else:
             selected_region = "全部地区"
-            st.markdown('<div class="filter-label">🌐 地域</div>', unsafe_allow_html=True)
             st.selectbox("地域", ["全部地区"], disabled=True, label_visibility="collapsed")
 
     df = all_data[all_data['选择月份'] == selected_month].copy()
@@ -435,54 +388,70 @@ def render_monthly_insights():
         infra_n = app_n = fin_n = 0
     total_n = len(df)
 
-    # 四列按钮
-    c1, c2, c3, c4 = st.columns(4)
+    # 统计卡片（毛玻璃）
+    st.markdown(f"""
+    <div class="stat-grid">
+        <div class="stat-item">
+            <div class="stat-number">{total_n}</div>
+            <div class="stat-label">📊 全部动态</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">{infra_n}</div>
+            <div class="stat-label">🏗️ 基建</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">{app_n}</div>
+            <div class="stat-label">🎨 应用</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">{fin_n}</div>
+            <div class="stat-label">💰 金融</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-    # 根据当前激活分类注入高亮样式
-    active = st.session_state.active_category
-    highlight_css = ""
-    if active == "全部":
-        highlight_css = """
-        div[data-testid="column"]:nth-of-type(1) .stButton > button {
-            border: 2px solid var(--accent-blue) !important;
-            background: linear-gradient(145deg, #ffffff, #f8faff) !important;
-        }
-        """
-    elif active == "基建":
-        highlight_css = """
-        div[data-testid="column"]:nth-of-type(2) .stButton > button {
-            border: 2px solid var(--accent-blue) !important;
-            background: linear-gradient(145deg, #ffffff, #f8faff) !important;
-        }
-        """
-    elif active == "应用":
-        highlight_css = """
-        div[data-testid="column"]:nth-of-type(3) .stButton > button {
-            border: 2px solid var(--accent-blue) !important;
-            background: linear-gradient(145deg, #ffffff, #f8faff) !important;
-        }
-        """
-    elif active == "金融":
-        highlight_css = """
-        div[data-testid="column"]:nth-of-type(4) .stButton > button {
-            border: 2px solid var(--accent-blue) !important;
-            background: linear-gradient(145deg, #ffffff, #f8faff) !important;
-        }
-        """
-    st.markdown(f"<style>{highlight_css}</style>", unsafe_allow_html=True)
+    # 胶囊切换器
+    active_cat = st.session_state.active_category
+    cats = ["全部", "基建", "应用", "金融"]
+    cat_icons = ["📊", "🏗️", "🎨", "💰"]
 
-    with c1:
-        if st.button(f"📊 全部\n\n{total_n}", key="btn_all", use_container_width=True):
-            st.session_state.active_category = "全部"
-    with c2:
-        if st.button(f"🏗️ 基建\n\n{infra_n}", key="btn_infra", use_container_width=True):
-            st.session_state.active_category = "基建"
-    with c3:
-        if st.button(f"🎨 应用\n\n{app_n}", key="btn_app", use_container_width=True):
-            st.session_state.active_category = "应用"
-    with c4:
-        if st.button(f"💰 金融\n\n{fin_n}", key="btn_fin", use_container_width=True):
-            st.session_state.active_category = "金融"
+    # 渲染胶囊 (使用自定义 HTML + st.button 混合)
+    cols = st.columns(len(cats))
+    for i, (cat, icon) in enumerate(zip(cats, cat_icons)):
+        with cols[i]:
+            # 通过 st.button 实现点击切换
+            if st.button(f"{icon} {cat}", key=f"cat_{cat}", use_container_width=True,
+                         type="primary" if active_cat == cat else "secondary"):
+                st.session_state.active_category = cat
+
+    # 注入胶囊样式覆盖 st.button 默认外观
+    st.markdown("""
+    <style>
+        /* 让 st.button 看起来像胶囊 */
+        div[data-testid="stButton"] button {
+            background: transparent !important;
+            border: none !important;
+            border-radius: 40px !important;
+            padding: 0.6rem 1.2rem !important;
+            font-weight: 550 !important;
+            font-size: 0.95rem !important;
+            color: var(--text-secondary) !important;
+            box-shadow: none !important;
+            transition: var(--transition) !important;
+            width: 100%;
+        }
+        div[data-testid="stButton"] button:hover {
+            background: rgba(0,0,0,0.03) !important;
+            color: var(--text-primary) !important;
+        }
+        /* 激活状态（primary 类型） */
+        div[data-testid="stButton"] button[kind="primary"] {
+            background: var(--text-primary) !important;
+            color: white !important;
+            box-shadow: var(--shadow-glow) !important;
+        }
+    </style>
+    """, unsafe_allow_html=True)
 
     # 根据激活分类过滤数据
     if cat_col and st.session_state.active_category != "全部":
@@ -490,13 +459,55 @@ def render_monthly_insights():
     else:
         display_df = df
 
-    render_feed_cards(display_df)
+    # 信息流
+    if display_df.empty:
+        st.info("✨ 当前筛选条件下暂无数据")
+        return
 
+    for _, row in display_df.iterrows():
+        cat = row.get('分类', '未分类')
+        if cat == "基建":
+            accent_color = "var(--accent-blue)"
+        elif cat == "金融":
+            accent_color = "var(--accent-orange)"
+        else:
+            accent_color = "var(--accent-green)"
+
+        month_str = f"{row['日期'].year}年{row['日期'].month}月"
+        company_key = next((k for k in ['公司', 'Company', '企业'] if k in row), '公司')
+        company_name = row.get(company_key, '未知公司')
+        progress = row.get('进展', '暂无进展说明')
+        feature = row.get('核心特点', '暂无描述')
+        feedback = row.get('市场反响', '暂无评价')
+
+        st.markdown(f"""
+        <div class="feed-card-new">
+            <div class="card-accent-bar" style="--accent-color: {accent_color};"></div>
+            <div class="card-content">
+                <div class="card-meta">
+                    <span>📅 {month_str}</span>
+                    <span>•</span>
+                    <span style="font-weight: 600;">{cat}</span>
+                </div>
+                <div class="card-company">{company_name}</div>
+                <div class="card-progress">{progress}</div>
+                <div class="feature-block-new">
+                    <div class="feature-label-new">✨ 核心特点</div>
+                    <div class="feature-text">{feature}</div>
+                </div>
+                <div class="feedback-text">
+                    <span>💬</span> {feedback}
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+# ---------- 第二、三页保持原样（略作适配）----------
 def render_bloggers():
     st.markdown("""
-    <div class="page-header">
-        <h1>🗣️ 知名博主 · 洞见追踪</h1>
-        <p>汇集 AI 领域顶尖研究者和开发者的最新观点</p>
+    <div style="margin-top: 1rem;">
+        <span style="font-size: 2rem; font-weight: 700; letter-spacing: -0.03em; color: var(--text-primary);">🗣️ 知名博主 · 洞见追踪</span>
+        <p style="color: var(--text-secondary); margin-top: 0.25rem;">汇集 AI 领域顶尖研究者和开发者的最新观点</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -511,31 +522,26 @@ def render_bloggers():
 
     for b in filtered:
         st.markdown(f"""
-        <div class="blogger-card">
+        <div style="background: var(--glass-bg); backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: 28px; padding: 1.5rem; margin-bottom: 1.2rem; box-shadow: var(--shadow-sm);">
             <div style="display: flex; align-items: center; gap: 1rem;">
-                <div style="font-size: 3rem; line-height: 1;">{b['avatar']}</div>
-                <div style="flex-grow: 1;">
-                    <div class="blogger-name">
-                        {b['name']}
-                        <span class="blogger-handle">{b['handle']}</span>
-                    </div>
-                    <div class="meta-text">{b['platform']} · {b['date']} · 分类: {b['category']}</div>
+                <div style="font-size: 3rem;">{b['avatar']}</div>
+                <div>
+                    <div style="font-weight: 700; font-size: 1.3rem;">{b['name']} <span style="color: var(--accent-blue); font-weight: 500;">{b['handle']}</span></div>
+                    <div style="color: var(--text-tertiary);">{b['platform']} · {b['date']} · {b['category']}</div>
                 </div>
             </div>
-            <div class="blogger-quote">
+            <div style="margin-top: 1rem; padding: 1rem 1.2rem; background: rgba(0,0,0,0.02); border-radius: 18px; border-left: 4px solid var(--accent-blue);">
                 “{b['quote']}”
             </div>
         </div>
         """, unsafe_allow_html=True)
-
-    st.markdown("---")
     st.caption("💡 数据为手动更新，计划接入 RSS / X API 自动同步。")
 
 def render_resources():
     st.markdown("""
-    <div class="page-header">
-        <h1>📚 学习资料 · 系统进阶</h1>
-        <p>精选 AI 学习路径、课程与工具，支持一键跳转</p>
+    <div style="margin-top: 1rem;">
+        <span style="font-size: 2rem; font-weight: 700; letter-spacing: -0.03em; color: var(--text-primary);">📚 学习资料 · 系统进阶</span>
+        <p style="color: var(--text-secondary); margin-top: 0.25rem;">精选 AI 学习路径、课程与工具，支持一键跳转</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -556,33 +562,22 @@ def render_resources():
     for i, res in enumerate(filtered_res):
         with cols[i % 3]:
             st.markdown(f"""
-            <div class="resource-card">
-                <div class="resource-icon">{res['icon']}</div>
-                <div class="resource-title">{res['title']}</div>
-                <div class="resource-desc">{res['desc']}</div>
+            <div style="background: var(--glass-bg); backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: 28px; padding: 1.5rem; height: 100%; box-shadow: var(--shadow-sm); transition: var(--transition);">
+                <div style="font-size: 2.2rem; margin-bottom: 1rem;">{res['icon']}</div>
+                <div style="font-weight: 700; font-size: 1.2rem; margin-bottom: 0.5rem;">{res['title']}</div>
+                <div style="color: var(--text-tertiary); font-size: 0.9rem; margin-bottom: 1rem;">{res['desc']}</div>
                 <div style="display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1.2rem;">
-                    {"".join([f'<span style="background: var(--bg-tertiary); padding: 0.2rem 0.6rem; border-radius: 30px; font-size: 0.7rem; color: var(--text-tertiary); border: 1px solid var(--border-light);">{tag}</span>' for tag in res['tags']])}
+                    {"".join([f'<span style="background: rgba(0,0,0,0.03); padding: 0.2rem 0.6rem; border-radius: 30px; font-size: 0.7rem; color: var(--text-tertiary);">{tag}</span>' for tag in res['tags']])}
                 </div>
-                <a href="{res['url']}" target="_blank" class="resource-link">
+                <a href="{res['url']}" target="_blank" style="display: inline-block; background: var(--text-primary); color: white; padding: 0.5rem 1.2rem; border-radius: 30px; font-weight: 500; font-size: 0.9rem; text-decoration: none;">
                     🌐 访问网站 →
                 </a>
             </div>
             """, unsafe_allow_html=True)
-
-    st.markdown("---")
     st.caption("⭐ 收藏本页，随时回来充电。")
 
 # ---------- 主入口 ----------
 def main():
-    st.markdown("""
-    <div style="margin-bottom: 1rem;">
-        <span style="font-size: 2rem; font-weight: 700; letter-spacing: -0.03em; background: linear-gradient(135deg, #0071e3 0%, #af52de 80%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
-            ⚡ AI Sentinel
-        </span>
-        <span style="font-size: 1rem; color: var(--text-tertiary); margin-left: 1rem; font-weight: 400;">智能瞭望台 · 每日 AI 脉搏</span>
-    </div>
-    """, unsafe_allow_html=True)
-
     tab1, tab2, tab3 = st.tabs(["📆 月度进展", "🗣️ 知名博主", "📚 学习资料"])
 
     with tab1:

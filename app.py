@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import requests
 from streamlit_option_menu import option_menu
+import html  # 在文件顶部添加导入
 
 # ================= 1. 基础配置与 Apple 风格样式 =================
 st.set_page_config(page_title="AI 行业洞察", layout="wide", page_icon="🚀")
@@ -138,7 +139,9 @@ if selected == "AI 产品进展":
     else:
         st.info("💡 请在 Secrets 中检查 gsheet_url 配置。")
 
-# --- 页面 2: 知名博主动态 ---
+
+
+# --- 页面 2: 知名博主动态 (乱码修正版) ---
 elif selected == "知名博主动态":
     st.markdown("<h1 style='text-align: center; margin-bottom: 20px;'>🏗️ 建造者动态</h1>", unsafe_allow_html=True)
     
@@ -150,29 +153,31 @@ elif selected == "知名博主动态":
         twitter_list = data_feeds.get("Twitter", [])
         if twitter_list:
             x_cols = st.columns(2)
-            for i, tweet in enumerate(twitter_list[:20]): # 展示最新的 20 条
+            for i, tweet in enumerate(twitter_list[:20]):
                 with x_cols[i % 2]:
+                    # 1. 解码 HTML 实体（修复 &amp; 等乱码）
+                    raw_text = html.unescape(tweet.get('text', ''))
+                    
+                    # 2. 将换行符 \n 转换为 HTML 的 <br> 标签，确保排版正确
+                    clean_text = raw_text.replace("\n", "<br>")
+                    
                     st.markdown(f"""
                     <div class="product-card" style="min-height:160px; padding:20px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
                             <b style="color:#E60012; font-size:14px;">{tweet.get('author_name')}</b>
                             <span style="color:#888; font-size:11px;">@{tweet.get('author_handle')}</span>
                         </div>
-                        <div style="font-size:13px; color:#1d1d1f; line-height:1.5;">
-                            {tweet.get('text', '无正文内容')}
+                        <div style="font-size:13px; color:#1d1d1f; line-height:1.6; font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
+                            {clean_text}
                         </div>
-                        <div style="margin-top:12px; display:flex; justify-content:space-between; align-items:center;">
-                            <span style="color:#86868b; font-size:10px;">{tweet.get('createdAt', '')[:10]}</span>
-                            <a href="{tweet.get('url', '#')}" target="_blank" style="color:#0071e3; font-size:11px; text-decoration:none;">查看原文 →</a>
+                        <div style="margin-top:15px; border-top: 1px solid #F5F5F7; pt:10px; display:flex; justify-content:space-between; align-items:center;">
+                            <span style="color:#86868b; font-size:10px; margin-top:8px;">{tweet.get('createdAt', '')[:10]}</span>
+                            <a href="{tweet.get('url', '#')}" target="_blank" style="color:#0071e3; font-size:11px; text-decoration:none; margin-top:8px;">查看原文 →</a>
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
         else:
-            st.info("💡 正在等待 GitHub Actions 更新数据，请稍后再试。")
-
-    with tab2:
-        # 播客部分逻辑保持相似，确保使用 pod.get('title') 等正确字段即可
-        st.info("播客摘要模块已就绪，正在解析最新音频内容...")
+            st.info("💡 正在同步最新 Builder 动态...")
 
 
 

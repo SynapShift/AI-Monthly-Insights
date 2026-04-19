@@ -140,70 +140,81 @@ if selected == "AI 产品进展":
                 """, unsafe_allow_html=True)
 
 
-
-
+####============================================================
 elif selected == "知名博主动态":
+    st.markdown("<h1 style='text-align: center; margin-bottom: 20px;'>🏗️ 知名博主动态</h1>", unsafe_allow_html=True)
+    
+    # ================= 1. UI 样式深度校准（抹平按钮与链接差异） =================
     st.markdown("""
-        <style>
-        /* 容器及边框 */
-        [data-testid="stVerticalBlockBorderWrapper"] {
-            border-radius: 16px !important;
-            border-color: #F2F2F7 !important;
-            background-color: #FFFFFF !important;
-            padding: 20px !important;
-        }
-    
-        /* 核心：彻底抹平按钮和链接的差异 */
-        div[data-testid="stButton"] button {
-            background-color: transparent !important;
-            color: #0071E3 !important; 
-            border: none !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            font-size: 12px !important; /* 强制 12px */
-            font-weight: 600 !important;
-            width: auto !important;
-            min-height: 18px !important; /* 限制最小高度 */
-            height: 18px !important;
-            line-height: 18px !important;
-            box-shadow: none !important;
-            display: inline-flex !important;
-            align-items: center !important;
-            vertical-align: middle !important;
-        }
-        
-        div[data-testid="stButton"] button:hover {
-            text-decoration: underline !important;
-            color: #0071E3 !important;
-        }
-    
-        /* 统一样式的 HTML 链接类 */
-        .unified-link {
-            color: #0071E3 !important;
-            font-size: 12px !important; /* 强制 12px */
-            text-decoration: none !important;
-            font-weight: 600 !important;
-            line-height: 18px !important;
-            display: inline-flex;
-            align-items: center;
-            vertical-align: middle;
-        }
-        .unified-link:hover {
-            text-decoration: underline !important;
-        }
-    
-        /* 右对齐列容器修正 */
-        [data-testid="column"] {
-            display: flex !important;
-            justify-content: flex-end !important;
-            align-items: center !important;
-        }
-        </style>
-        """, unsafe_allow_html=True)   
-        
-    
+    <style>
+    /* 卡片外层容器 */
+    [data-testid="stVerticalBlockBorderWrapper"] {
+        border-radius: 16px !important;
+        border-color: #F2F2F7 !important;
+        background-color: #FFFFFF !important;
+        padding: 20px !important;
+    }
 
-    # --- Tab 1: Twitter (保持原样) ---
+    /* 1. 彻底改造 Streamlit 原生按钮：使其看起来像普通文字链接 */
+    div[data-testid="stButton"] button {
+        background-color: transparent !important;
+        color: #0071E3 !important; 
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        font-size: 12px !important; /* 强制 12px 大小 */
+        font-weight: 600 !important;
+        width: auto !important;
+        min-height: 18px !important;
+        height: 18px !important;
+        line-height: 18px !important;
+        box-shadow: none !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        vertical-align: middle !important;
+        text-transform: none !important;
+    }
+    
+    div[data-testid="stButton"] button:hover {
+        text-decoration: underline !important;
+        color: #0071E3 !important;
+        background-color: transparent !important;
+    }
+
+    div[data-testid="stButton"] button:focus:not(:active) {
+        color: #0071E3 !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    /* 2. 统一样式的 HTML 链接（用于 Tab 2 的收听原片和 Tab 3 的阅读全文） */
+    .unified-link {
+        color: #0071E3 !important;
+        font-size: 12px !important; /* 强制 12px 大小 */
+        text-decoration: none !important;
+        font-weight: 600 !important;
+        line-height: 18px !important;
+        display: inline-flex;
+        align-items: center;
+        vertical-align: middle;
+    }
+    .unified-link:hover {
+        text-decoration: underline !important;
+    }
+
+    /* 3. 让 Streamlit 的列内容自动靠右下角对齐 */
+    [data-testid="column"] {
+        display: flex !important;
+        justify-content: flex-end !important;
+        align-items: center !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    data_feeds = fetch_builder_feeds()
+    tab1, tab2, tab3 = st.tabs(["Twitter Insights", "Podcast Summary", "Official Blog"])
+
+    # --- Tab 1: Twitter ---
     with tab1:
         twitter_list = data_feeds.get("Twitter", [])
         if twitter_list:
@@ -225,16 +236,25 @@ elif selected == "知名博主动态":
                     </div>
                     """, unsafe_allow_html=True)
 
-
-# --- Tab 2: Podcast ---
+    # --- Tab 2: Podcast Summary ---
     with tab2:
-        # (show_full_transcript 定义保持不变...)
+        @st.dialog("对话全文摘要", width="large")
+        def show_full_transcript(title, content):
+            st.markdown(f"### {title}")
+            st.markdown("---")
+            with st.container(height=500):
+                st.write(content)
+            if st.button("关闭窗口"):
+                st.rerun()
+
         pod_list = data_feeds.get("Podcasts", [])
         if pod_list:
             for pod in pod_list[:8]:
-                # (数据清洗部分保持不变...)
+                raw_transcript = pod.get('transcript', '')
+                clean_text = re.sub(r'Speaker \d+ \| \d+:\d+ - \d+:\d+', '', raw_transcript).strip()
+                preview_summary = html.unescape(clean_text)[:1000] + "..."
                 title_clean = html.unescape(pod.get('title', 'Untitled'))
-                pub_date = str(pod.get('publishedAt', ''))[:10]
+                pub_date = str(pod.get('publishedAt', ''))[:10] or "2026-04-19"
 
                 with st.container(border=True):
                     st.markdown(f"""
@@ -251,21 +271,20 @@ elif selected == "知名博主动态":
                     <div style="border-top: 1px solid #F5F5F7; margin-bottom: -10px; margin-top: 10px;"></div>
                     """, unsafe_allow_html=True)
                     
-                    # 调整列宽：让 c2 和 c3 尽量靠右并紧凑
-                    c1, c2, c3 = st.columns([0.7, 0.16, 0.14]) 
+                    # 比例调整：0.7 占位，0.16 放“阅读全文”，0.14 放“收听原片”，完美靠右
+                    c1, c2, c3 = st.columns([0.7, 0.16, 0.14])
                     with c2:
-                        # 修改文字为“阅读全文”，并添加箭头符号以对齐风格
+                        # “阅读全文摘要” 改为 “阅读全文 ›”
                         if st.button("阅读全文 ›", key=f"btn_{pod.get('url')}"):
                             show_full_transcript(title_clean, clean_text)
                     with c3:
-                        # 确保链接也使用同样的 class
+                        # 应用统一的类名 unified-link，抹平样式差异
                         st.markdown(f'<a href="{pod.get("url","#")}" target="_blank" class="unified-link">收听原片 ↗</a>', unsafe_allow_html=True)
 
+        else:
+            st.info("💡 正在同步最新播客洞察...")
 
-
-
-    
-    # --- Tab 3: Official Blog (修改对齐和样式) ---
+    # --- Tab 3: Official Blog ---
     with tab3:
         blog_list = data_feeds.get("Blogs", [])
         if blog_list:
@@ -281,12 +300,19 @@ elif selected == "知名博主动态":
                     </div>
                     <h4 style="margin:0 0 10px 0; font-size:17px; line-height:1.4; color:#1D1D1F;">{blog.get('title')}</h4>
                     <p style="font-size:13px; color:#424245; line-height:1.6;">{clean_blog}</p>
-                    <div class="right-align-container">
+                    <div style="margin-top:12px; text-align:right; border-top:1px solid #F5F5F7; padding-top:10px; display:flex; justify-content:flex-end;">
                         <a href="{blog.get('url','#')}" target="_blank" class="unified-link">阅读全文 ↗</a>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
 
+
+
+                
+###==============================================
+
+
+    
 
 elif selected == "AI 学习资料库":
     st.markdown("<h1 style='text-align: center;'>📚 知识库</h1>", unsafe_allow_html=True)

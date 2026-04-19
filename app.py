@@ -1,129 +1,112 @@
 import streamlit as st
 import pandas as pd
 from streamlit_gsheets import GSheetsConnection
-from streamlit_option_menu import option_menu
+from streamlit_option_menu import option_menu  # 需要安装: pip install streamlit-option-menu
 
 # ================= 配置与样式 =================
-st.set_page_config(page_title="AI 行业洞察看板", layout="wide")
+st.set_page_config(page_title="AI 行业洞察看板", layout="wide", page_icon="🚀")
 
-# 自定义 CSS：深度复刻图中的高端奢华画册风格
+# 自定义 CSS：模仿苹果官网的毛玻璃效果与极简导航
 st.markdown("""
     <style>
-    /* 隐藏原生顶部和菜单 */
+    /* 隐藏原生顶部间距和菜单 */
     #MainMenu {visibility: hidden;}
     header {visibility: hidden;}
     footer {visibility: hidden;}
     .block-container {
-        padding-top: 1.5rem;
-        max-width: 1100px; /* 收窄主内容区，保持图中的呼吸感 */
+        padding-top: 2rem;
+        padding-bottom: 2rem;
     }
 
-    /* 全局背景与大标题 */
+    /* 全局背景与文字 */
     .stApp {
         background-color: #FFFFFF;
     }
+    
+    /* 标题样式 */
     h1, h2, h3 {
-        color: #1D1D1F !important;
-        font-family: "PingFang SC", "Helvetica Neue", sans-serif;
-        font-weight: 700 !important;
-    }
-    
-    /* 顶部导航容器 */
-    .header-container {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 15px 0;
-        border-bottom: 1px solid #EAEAEA;
-        margin-bottom: 30px;
+        color: #1D1D1F !important; /* 苹果黑 */
+        font-family: "SF Pro Display", "PingFang SC", sans-serif;
+        font-weight: 600;
     }
 
-    /* 苹果/高端品牌风格的纯文字导航项覆盖 */
-    div[data-component-instance-name="option_menu"] {
-        border: none !important;
-    }
-    .nav-link {
-        font-size: 14px !important;
-        color: #515154 !important;
-        font-weight: 500 !important;
-        padding: 8px 16px !important;
-        background: none !important;
-    }
-    .nav-link:hover {
-        color: #000000 !important;
-    }
-    .nav-link-selected {
-        color: #6B001A !important; /* 图中的高级暗酒红色 */
-        font-weight: 600 !important;
-        background: none !important;
-        border-bottom: 2px solid #6B001A !important;
-        border-radius: 0px !important;
+    /* 顶部导航容器微调 */
+    .nav-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 999;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgba(0,0,0,0.1);
     }
 
-    /* 复刻图中的胶囊按钮 */
-    .pill-btn-red {
-        background-color: #6B001A;
-        color: white !important;
-        padding: 8px 24px;
-        border-radius: 50px;
-        font-size: 13px;
-        font-weight: 600;
-        text-decoration: none;
-        transition: opacity 0.2s;
-    }
-    .pill-btn-white {
+    /* 卡片样式 */
+    .product-card {
         background-color: #FFFFFF;
-        color: #1D1D1F !important;
-        padding: 8px 24px;
-        border-radius: 50px;
-        font-size: 13px;
-        font-weight: 600;
-        border: 1px solid #1D1D1F;
-        text-decoration: none;
-    }
-    
-    /* 图中的大卡片样式 */
-    .luxury-card {
-        background-color: #FFFFFF;
-        padding: 0px;
-        margin-bottom: 40px;
-    }
-    .featured-box {
-        background-color: #6B001A;
-        color: white;
-        padding: 40px;
+        border: 1px solid #F2F2F2;
+        padding: 24px;
         border-radius: 12px;
         margin-bottom: 20px;
+        transition: all 0.3s cubic-bezier(0,0,0.5,1);
     }
-    .featured-box h2, .featured-box p {
-        color: white !important;
+    .product-card:hover {
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        transform: translateY(-2px);
     }
     
+    /* 标签样式 */
+    .tag {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        margin-right: 8px;
+        background-color: #F5F5F7;
+        color: #1D1D1F;
+    }
+    .tag-highlight {
+        background-color: #E60012;
+        color: white;
+    }
+
+    /* 模拟引用块样式 */
+    .insight-quote {
+        background-color: #FBFBFD;
+        padding: 15px;
+        border-radius: 8px;
+        font-size: 14px;
+        border-left: 4px solid #E60012;
+        color: #424245;
+    }
     </style>
     """, unsafe_allow_html=True)
 
-# ================= 1. 完全复刻的顶边栏 =================
-# 使用 Streamlit columns 模拟“左Logo、中导航、右按钮”
-head_col1, head_col2, head_col3 = st.columns([1.5, 4, 1.2], vertical_alignment="center")
+# ================= 顶部导航栏实现 =================
+# 使用 option_menu 创建水平导航
 
-with head_col1:
-    st.markdown("<h3 style='margin:0; font-size: 20px; letter-spacing: 1px;'>SHUFFLE PROJECT</h3>", unsafe_allow_html=True)
-
-with head_col2:
-    # 隐藏菜单的边框，使其纯文字悬浮
-    page = option_menu(
-        menu_title=None,
-        options=["Product进展", "博主动态", "资料库"],
-        icons=None,
-        orientation="horizontal",
-        styles={"container": {"background-color": "transparent"}}
-    )
-
-with head_col3:
-    # 右侧胶囊 CTA 按钮
-    st.markdown("<a href='#' class='pill-btn-red'>Contact</a>", unsafe_allow_html=True)
-
-st.markdown("<hr style='margin-top:0; border-top: 1px solid #EAEAEA;'>", unsafe_allow_html=True)
+selected = option_menu(
+    menu_title=None, # 不显示标题
+    options=["AI 产品进展", "知名博主动态", "AI 学习资料库"],
+    icons=["rocket-takeoff", "person-badge", "book"], # 使用 bootstrap 图标
+    menu_icon="cast",
+    default_index=0,
+    orientation="horizontal",
+    styles={
+        "container": {"padding": "0!important", "background-color": "#fbfbfd", "max-width": "100%"},
+        "icon": {"color": "#6e6e73", "font-size": "18px"}, 
+        "nav-link": {
+            "font-size": "15px", 
+            "text-align": "center", 
+            "margin": "0px", 
+            "color": "#1d1d1f",
+            "font-weight": "500"
+        },
+        "nav-link-selected": {"background-color": "#E60012", "color": "white"},
+    }
+)
 
 
 # ================= 数据获取 =================
@@ -141,74 +124,51 @@ def load_data():
 
 df = load_data()
 
-
-# ================= 2. 页面路由与画册风排版 =================
-if page == "Product进展":
-    # 模拟图中的大字报 Title
-    st.markdown("""
-        <div style='margin: 40px 0;'>
-            <span style='font-size:12px; text-transform:uppercase; color:#86868b; letter-spacing:2px;'>AI Platform</span>
-            <h1 style='font-size: 40px; margin-top: 10px; line-height: 1.2;'>AI 行业前沿进展<br>与核心动态追踪</h1>
-        </div>
-        """, unsafe_allow_html=True)
-
-    # 模拟图中的图文排版
-    col_text, col_img = st.columns([1, 1.5], gap="large")
+# ================= 页面路由 =================
+if selected == "AI 产品进展":
+    st.markdown("<h1 style='text-align: center; margin-top: 20px;'>🚀 AI 产品进展</h1>", unsafe_allow_html=True)
     
-    with col_text:
-        st.markdown("""
-            <div style='margin-top: 20px;'>
-                <p style='color:#6e6e73; font-size:15px; line-height:1.6;'>
-                    持续追踪全球最顶尖的人工智能进展。通过极简的结构化看板，为您过滤噪音，直击核心技术突破与商业落地动态。
-                </p>
-                <div style='margin-top: 30px; display: flex; gap: 15px;'>
-                    <a href='#' class='pill-btn-red'>View properties</a>
-                    <a href='#' class='pill-btn-white'>Learn more</a>
+    if not df.empty:
+        # 极简筛选器
+        with st.container():
+            c1, c2, c3 = st.columns(3)
+            with c1: month_filter = st.multiselect("时间", options=df['选择月份'].unique())
+            with c2: category_filter = st.multiselect("分类", options=df['分类'].unique())
+            with c3: company_filter = st.multiselect("公司", options=df['公司'].unique())
+
+        filtered_df = df.copy()
+        if month_filter: filtered_df = filtered_df[filtered_df['选择月份'].isin(month_filter)]
+        if category_filter: filtered_df = filtered_df[filtered_df['分类'].isin(category_filter)]
+        if company_filter: filtered_df = filtered_df[filtered_df['公司'].isin(company_filter)]
+
+        # 瀑布流布局
+        for _, row in filtered_df.iterrows():
+            st.markdown(f"""
+            <div class="product-card">
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="font-size: 13px; color: #86868b; font-weight: 600;">{row['公司']}</span>
+                    <span style="color: #86868b; font-size: 13px;">{row['日期']}</span>
+                </div>
+                <h2 style="margin: 8px 0; font-size: 24px;">{row['进展']}</h2>
+                <div style="margin-bottom: 15px;">
+                    <span class="tag tag-highlight">{row['分类']}</span>
+                    <span class="tag">{row['地域']}</span>
+                </div>
+                <p style="color: #1d1d1f; line-height: 1.5;">{row['核心特点']}</p>
+                <div class="insight-quote">
+                    <b>市场反馈：</b>{row['市场反响']}
                 </div>
             </div>
             """, unsafe_allow_html=True)
-            
-    with col_img:
-        # 这里模拟图中的主视觉图（实际可放图表或卡片）
-        st.markdown("""
-            <div class='featured-box'>
-                <span style='font-size: 11px; text-transform: uppercase; opacity: 0.8;'>Feature Highlight</span>
-                <h2 style='margin: 10px 0; font-size: 28px;'>快速拉升与<br>多模态 Agent 演进</h2>
-                <p style='font-size:14px; opacity: 0.9;'>本月重点关注各大模型在视觉处理和自主决策层面的突飞猛进...</p>
-                <a href='#' style='color: white; font-size: 14px; font-weight: 600; text-decoration: none;'>Explore →</a>
-            </div>
-            """, unsafe_allow_html=True)
-
-    # 瀑布流/Bento 栅格卡片
-    st.markdown("<h2 style='font-size: 28px; margin: 40px 0 20px 0;'>最新跟踪</h2>", unsafe_allow_html=True)
-    
-    if not df.empty:
-        # 筛选器
-        c1, c2 = st.columns([1, 3])
-        with c1:
-            month_filter = st.multiselect("月份", options=df['选择月份'].unique())
-        
-        filtered_df = df if not month_filter else df[df['选择月份'].isin(month_filter)]
-
-        # 复刻图中的多栏画册排版
-        cols = st.columns(3, gap="medium")
-        for i, (_, row) in enumerate(filtered_df.iterrows()):
-            with cols[i % 3]:
-                st.markdown(f"""
-                    <div style='border-bottom: 1px solid #EAEAEA; padding-bottom: 20px; margin-bottom: 20px;'>
-                        <span style='font-size: 11px; font-weight: 700; color: #6B001A;'>{row['分类']}</span>
-                        <h3 style='font-size: 18px; margin: 5px 0;'>{row['公司']} - {row['进展']}</h3>
-                        <p style='color: #6e6e73; font-size: 13px; line-height: 1.5;'>{row['核心特点']}</p>
-                        <a href='#' style='color: #1D1D1F; font-size: 13px; font-weight: 600; text-decoration: none;'>View project →</a>
-                    </div>
-                    """, unsafe_allow_html=True)
     else:
-        st.info("等待数据同步中...")
+        st.warning("请检查数据配置...")
 
-elif page == "博主动态":
-    st.markdown("<h1 style='margin-top: 30px;'>📢 业界动态</h1>", unsafe_allow_html=True)
-    st.info("博主动态正在按照该风格重构中...")
+elif selected == "知名博主动态":
+    st.markdown("<h1 style='text-align: center; margin-top: 20px;'>📢 业界动态</h1>", unsafe_allow_html=True)
+    # 此处保留原有的博主动态展示逻辑...
+    st.info("博主动态加载中...")
 
-elif page == "资料库":
-    st.markdown("<h1 style='margin-top: 30px;'>📚 知识库</h1>", unsafe_allow_html=True)
-    st.info("学习资料库正在按照该风格重构中...")
+elif selected == "AI 学习资料库":
+    st.markdown("<h1 style='text-align: center; margin-top: 20px;'>📚 知识库</h1>", unsafe_allow_html=True)
+    # 此处保留原有的资料库展示逻辑...
+    st.info("资料库同步中...")

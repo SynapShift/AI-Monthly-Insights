@@ -95,33 +95,69 @@ if selected == "AI 产品进展":
                     st.markdown(html, unsafe_allow_html=True)
     else:
         st.info("数据加载中或配置有误...")
+
+###知名博主
 elif selected == "知名博主动态":
-    st.markdown("<h1 style='text-align: center;'>🏗️ 建造者动态 (Follow Builders)</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center; margin-bottom: 30px;'>🏗️ 建造者动态 (Follow Builders)</h1>", unsafe_allow_html=True)
     
-    # 模拟从中心化 Feed 获取的数据处理
-    data = fetch_follow_builders_feed()
+    # 1. 获取内容（这里依然用你获取到的那段 Sample 文本）
+    raw_content = fetch_follow_builders_feed() # 假设这里返回了你刚才贴出的那段文本
     
-    if isinstance(data, dict):
-        # 如果获取到了 JSON 格式的 Feed
-        for item in data.get('items', []):
-            with st.container():
+    # 2. UI 顶部的提示词
+    st.markdown(f"""
+    <div class="insight-quote" style="border-left: 4px solid #0071e3; margin-bottom: 25px;">
+        <b>💡 追踪逻辑：</b> 聚合来自 Karpathy 等 25 位 Top Builder 及 6 个顶级 AI 播客的每日摘要。
+    </div>
+    """, unsafe_allow_html=True)
+
+    # 3. 结构化展示 - 播客部分
+    if "PODCASTS" in raw_content:
+        st.subheader("🎧 顶级 AI 播客精选")
+        # 简单解析：按播客名称分割（这里用正则或字符串分割模拟）
+        pod_sections = raw_content.split("PODCASTS")[1].split("X / TWITTER")[0].split("\n\n")
+        
+        for pod in pod_sections:
+            if "—" in pod:
+                name, detail = pod.split("—", 1)
                 st.markdown(f"""
-                <div class="product-card">
-                    <div style="color: #86868b; font-size: 12px; font-weight: 600;">来自建造者: {item.get('author')}</div>
-                    <div style="margin: 10px 0; font-size: 16px; line-height: 1.6;">{item.get('content')}</div>
-                    <div style="text-align: right;"><a href="{item.get('link')}" style="color: #E60012; text-size: 12px;">查看原文 →</a></div>
+                <div class="product-card" style="border-left: 5px solid #E60012;">
+                    <div style="color: #E60012; font-weight: 700; font-size: 14px; margin-bottom: 5px;">Podcast</div>
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 10px;">{name.strip()}</div>
+                    <div style="font-size: 14px; color: #1d1d1f; line-height: 1.6; background: #f5f5f7; padding: 12px; border-radius: 8px;">
+                        {detail.strip()}
+                    </div>
                 </div>
                 """, unsafe_allow_html=True)
-    else:
-        # 如果只有 Markdown 示例，我们用正则简单拆分后显示
-        st.markdown(f"""
-        <div class="insight-quote" style="border-left: 4px solid #0071e3;">
-            <b>💡 Skill 原理：</b> 本页面通过追踪中心化 Feed 获取来自 Karpathy、Sam Altman 等 25 位建造者的最新洞察。
-        </div>
-        """, unsafe_allow_html=True)
+
+    # 4. 结构化展示 - X/Twitter 部分
+    if "X / TWITTER" in raw_content:
+        st.markdown("---")
+        st.subheader("🐦 建造者观点 (X/Twitter)")
+        x_sections = raw_content.split("X / TWITTER")[1].split("Reply to adjust")[0].split("\n")
         
-        # 显示抓取到的 Markdown 内容
-        st.markdown(data)
+        # 过滤掉空行
+        x_items = [item for item in x_sections if "@" in item]
+        
+        cols = st.columns(2) # 左右两栏布局
+        for idx, item in enumerate(x_items):
+            with cols[idx % 2]:
+                # 提取博主名
+                parts = item.split(" ", 2)
+                name = parts[0] + " " + parts[1] if len(parts) > 1 else "Builder"
+                insight = parts[2] if len(parts) > 2 else item
+                
+                st.markdown(f"""
+                <div class="product-card" style="min-height: 180px;">
+                    <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                        <div style="width: 32px; height: 32px; background: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; margin-right: 10px;">X</div>
+                        <div style="font-weight: 600; font-size: 15px;">{name}</div>
+                    </div>
+                    <div style="font-size: 13px; color: #424245; line-height: 1.5;">{insight}</div>
+                </div>
+                """, unsafe_allow_html=True)
+
+
+###知名博主
 
 elif selected == "AI 学习资料库":
     st.markdown("<h1 style='text-align: center;'>📚 知识库</h1>", unsafe_allow_html=True)

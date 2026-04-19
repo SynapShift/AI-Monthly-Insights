@@ -2,7 +2,8 @@ import streamlit as st
 import pandas as pd
 import requests
 from streamlit_option_menu import option_menu
-import html  # 在文件顶部添加导入
+import html
+import re
 
 # ================= 1. 基础配置与 Apple 风格样式 =================
 st.set_page_config(page_title="AI 行业洞察", layout="wide", page_icon="🚀")
@@ -13,27 +14,44 @@ st.markdown("""
 .block-container {padding-top: 2rem;}
 .stApp {background-color: #FFFFFF;}
 
-/* 产品卡片样式 */
+/* 产品卡片通用样式 */
 .product-card {
     background-color: #FFFFFF; 
-    border: 1px solid #F2F2F2; 
+    border: 1px solid #F2F2F7; 
     padding: 24px; 
-    border-radius: 12px; 
+    border-radius: 16px; 
     margin-bottom: 20px; 
-    transition: all 0.3s ease; 
-    min-height: 200px;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
 }
 .product-card:hover {box-shadow: 0 8px 24px rgba(0,0,0,0.05);}
-.tag {display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; margin-right: 8px; background-color: #F5F5F7; color: #1D1D1F;}
+
+/* 标签样式 */
+.tag {
+    display: inline-block; 
+    padding: 4px 12px; 
+    border-radius: 6px; 
+    font-size: 11px; 
+    font-weight: 600; 
+    margin-right: 8px; 
+    background-color: #F5F5F7; 
+    color: #1D1D1F;
+}
 .tag-highlight {background-color: #E60012; color: white;}
-.insight-quote {background-color: #FBFBFD; padding: 15px; border-radius: 8px; font-size: 13px; border-left: 4px solid #E60012; color: #424245; margin-top: 10px;}
-.builder-name {color: #E60012; font-weight: 700; font-size: 15px; margin-bottom: 5px;}
+
+/* 摘要内容区域 */
+.insight-box {
+    background-color: #FBFBFD; 
+    padding: 16px; 
+    border-radius: 10px; 
+    border: 1px solid #F2F2F7; 
+    margin: 12px 0;
+}
 </style>
 """, unsafe_allow_html=True)
 
 # ================= 2. 数据获取逻辑 =================
 
-# 读取 Google Sheets (第一页数据)
 @st.cache_data(ttl=600)
 def load_sheet_data():
     full_url = st.secrets.get("gsheet_url", "")
@@ -43,9 +61,6 @@ def load_sheet_data():
         return pd.read_csv(csv_url)
     except: return pd.DataFrame()
 
-# 爬取 Follow-Builders 开源项目数据 (第二页数据)
-# 修改后的函数
-@st.cache_data(ttl=3600)
 @st.cache_data(ttl=3600)
 def fetch_builder_feeds():
     base_url = "https://raw.githubusercontent.com/zarazhangrui/follow-builders/main/"
@@ -61,41 +76,24 @@ def fetch_builder_feeds():
             r = requests.get(url, timeout=10)
             if r.status_code == 200:
                 raw_data = r.json()
-                
-                # --- 增强版 Twitter 解析 ---
                 if key == "Twitter":
-                    # 兼容性检查：有些版本嵌套在 'x' 里，有些直接是列表
                     builders_list = raw_data.get("x") if isinstance(raw_data, dict) else raw_data
-                    if not builders_list and isinstance(raw_data, list):
-                        builders_list = raw_data
-                    
+                    if not builders_list and isinstance(raw_data, list): builders_list = raw_data
                     if builders_list:
                         flattened_x = []
-                        for builder in builders_list:
-                            # 确保 builder 是字典格式
-                            if not isinstance(builder, dict): continue
-                            name = builder.get('name', 'Unknown')
-                            handle = builder.get('handle', 'unknown')
-                            for tweet in builder.get('tweets', []):
-                                tweet['author_name'] = name
-                                tweet['author_handle'] = handle
-                                flattened_x.append(tweet)
-                        # 排序并去重
+                        for b in builders_list:
+                            if not isinstance(b, dict): continue
+                            for t in b.get('tweets', []):
+                                t['author_name'] = b.get('name', 'Unknown')
+                                t['author_handle'] = b.get('handle', 'unknown')
+                                flattened_x.append(t)
                         results["Twitter"] = sorted(flattened_x, key=lambda x: x.get('createdAt', ''), reverse=True)
-                
-                # --- 播客解析 ---
                 elif key == "Podcasts":
                     results["Podcasts"] = raw_data.get("podcasts", []) if isinstance(raw_data, dict) else raw_data
-                
-                # --- 博客解析 ---
                 elif key == "Blogs":
                     results["Blogs"] = raw_data.get("blogs", []) if isinstance(raw_data, dict) else raw_data
-        except Exception as e:
-            # 方便你在本地控制台看到错误详情
-            print(f"Error fetching {key}: {e}")
-            continue
+        except: continue
     return results
-         
 
 # ================= 3. 导航栏 =================
 selected = option_menu(
@@ -111,195 +109,111 @@ selected = option_menu(
 
 # ================= 4. 页面路由 =================
 
-# --- 页面 1: AI 产品进展 ---
 if selected == "AI 产品进展":
     st.markdown("<h1 style='text-align: center; margin-bottom: 30px;'>🚀 AI 产品进展</h1>", unsafe_allow_html=True)
     df = load_sheet_data()
-    
     if not df.empty:
-        # 筛选器
         c1, c2, c3 = st.columns(3)
-        with c1:
-            m_filter = st.multiselect("📅 时间范围", sorted(df['选择月份'].unique()) if '选择月份' in df.columns else [])
-        with c2:
-            cat_filter = st.multiselect("🏷️ 产品分类", sorted(df['分类'].unique()) if '分类' in df.columns else [])
-        with c3:
-            comp_filter = st.multiselect("🏢 所属公司", sorted(df['公司'].unique()) if '公司' in df.columns else [])
+        with c1: m_filter = st.multiselect("Time Range", sorted(df['选择月份'].unique()) if '选择月份' in df.columns else [])
+        with c2: cat_filter = st.multiselect("Category", sorted(df['分类'].unique()) if '分类' in df.columns else [])
+        with c3: comp_filter = st.multiselect("Company", sorted(df['公司'].unique()) if '公司' in df.columns else [])
 
-        # 过滤数据
         f_df = df.copy()
         if m_filter: f_df = f_df[f_df['选择月份'].isin(m_filter)]
         if cat_filter: f_df = f_df[f_df['分类'].isin(cat_filter)]
         if comp_filter: f_df = f_df[f_df['公司'].isin(comp_filter)]
 
-        st.markdown("<br>", unsafe_allow_html=True)
-        
-        # 布局展示
         cols = st.columns(3)
         for i, (idx, row) in enumerate(f_df.iterrows()):
             with cols[i % 3]:
                 st.markdown(f"""
                 <div class="product-card">
-                    <div style="font-size:12px;color:#86868b;font-weight:600;">{row.get('公司','-')} · {row.get('日期','-')}</div>
-                    <h3 style="font-size:19px;margin:10px 0;">{row.get('进展','-')}</h3>
+                    <div style="font-size:11px;color:#86868b;font-weight:600;">{row.get('公司','-')} | {row.get('日期','-')}</div>
+                    <h3 style="font-size:18px;margin:12px 0;">{row.get('进展','-')}</h3>
                     <div style="margin-bottom:12px;">
                         <span class="tag tag-highlight">{row.get('分类','-')}</span>
                         <span class="tag">{row.get('地域','-')}</span>
                     </div>
-                    <p style="font-size:14px;color:#424245;">{row.get('核心特点','-')}</p>
-                    <div class="insight-quote"><b>市场反馈：</b>{row.get('市场反响','-')}</div>
+                    <p style="font-size:13px;color:#424245;line-height:1.5;">{row.get('核心特点','-')}</p>
+                    <div class="insight-box"><b style="color:#1D1D1F;">Market Feedback:</b><br>{row.get('市场反响','-')}</div>
                 </div>
                 """, unsafe_allow_html=True)
-    else:
-        st.info("💡 请在 Secrets 中检查 gsheet_url 配置。")
 
-
-
-# --- 页面 2: 知名博主动态 (乱码修正版) ---
-# 修改后的页面渲染部分
-# --- 页面 2: 知名博主动态 ---
 elif selected == "知名博主动态":
     st.markdown("<h1 style='text-align: center; margin-bottom: 20px;'>🏗️ 知名博主动态</h1>", unsafe_allow_html=True)
-    
     data_feeds = fetch_builder_feeds()
-    tab1, tab2, tab3 = st.tabs(["🐦 Twitter 洞察", "🎧 播客摘要", "📝 官方博客"])
-    
+    tab1, tab2, tab3 = st.tabs(["Twitter Insights", "Podcast Summary", "Official Blog"])
+
     with tab1:
         twitter_list = data_feeds.get("Twitter", [])
         if twitter_list:
             x_cols = st.columns(2)
             for i, tweet in enumerate(twitter_list[:20]):
                 with x_cols[i % 2]:
-                    # 修复乱码与换行
                     clean_text = html.unescape(tweet.get('text', '')).replace("\n", "<br>")
                     st.markdown(f"""
-                    <div class="product-card" style="min-height:160px; padding:20px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <div class="product-card" style="min-height:160px;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
                             <b style="color:#E60012; font-size:14px;">{tweet.get('author_name')}</b>
                             <span style="color:#888; font-size:11px;">@{tweet.get('author_handle')}</span>
                         </div>
-                        <div style="font-size:13px; color:#1d1d1f; line-height:1.6;">{clean_text}</div>
-                        <div style="margin-top:15px; border-top: 1px solid #F5F5F7; padding-top:10px; display:flex; justify-content:space-between; align-items:center;">
-                            <span style="color:#86868b; font-size:10px;">🕒 {tweet.get('createdAt', '')[:10]}</span>
-                            <a href="{tweet.get('url', '#')}" target="_blank" style="color:#0071e3; font-size:11px; text-decoration:none;">查看原文 →</a>
+                        <div style="font-size:13px; color:#1D1D1F; line-height:1.6;">{clean_text}</div>
+                        <div style="margin-top:15px; border-top: 1px solid #F2F2F7; padding-top:10px; display:flex; justify-content:space-between;">
+                            <span style="color:#86868b; font-size:10px;">Date: {tweet.get('createdAt', '')[:10]}</span>
+                            <a href="{tweet.get('url', '#')}" target="_blank" style="color:#0071e3; font-size:11px; text-decoration:none; font-weight:600;">Original Post &rarr;</a>
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
-
-
-
 
     with tab2:
-            pod_list = data_feeds.get("Podcasts", [])
-            if pod_list:
-                for pod in pod_list[:8]:
-                    # 1. 文本清洗与摘要提取
-                    import re
-                    raw_transcript = pod.get('transcript', '')
-                    # 去掉 Speaker 标识符
-                    clean_summary = re.sub(r'Speaker \d+ \| \d+:\d+ - \d+:\d+', '', raw_transcript)
-                    # 使用 html.escape 确保文本内容不会被错误解析为 HTML
-                    clean_summary = html.escape(clean_summary.strip())[:240] + "..."
-                    
-                    # 2. 时间处理
-                    pub_date = pod.get('publishedAt')
-                    date_str = str(pub_date)[:10] if pub_date else "2026-04-10"
-                    
-                    # 3. 获取标题并清洗
-                    safe_title = html.escape(pod.get('title', 'Untitled'))
-    
-                    # 4. 渲染卡片：移除可能导致乱码的图标，改用更稳健的 CSS 设计
-                    st.markdown(f"""
-                    <div style="
-                        background: #FFFFFF; 
-                        border: 1px solid #F2F2F7; 
-                        border-radius: 16px; 
-                        padding: 24px; 
-                        margin-bottom: 20px;
-                        box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-                    ">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-                            <div style="display: flex; align-items: center;">
-                                <span style="
-                                    border-left: 3px solid #E60012; 
-                                    padding-left: 8px; 
-                                    color: #1D1D1F; 
-                                    font-size: 11px; 
-                                    font-weight: 700; 
-                                    text-transform: uppercase;
-                                    letter-spacing: 0.5px;
-                                ">
-                                    {pod.get('name', 'PODCAST')}
-                                </span>
-                            </div>
-                            <span style="color: #86868B; font-size: 11px;">{date_str}</span>
-                        </div>
-    
-                        <h4 style="margin: 0 0 12px 0; font-size: 17px; color: #1D1D1F; line-height: 1.4; font-weight: 600;">
-                            {safe_title}
-                        </h4>
-    
-                        <div style="
-                            background-color: #FBFBFD; 
-                            padding: 16px; 
-                            border-radius: 10px; 
-                            border: 1px solid #F2F2F7;
-                            margin-bottom: 16px;
-                        ">
-                            <p style="margin: 0; font-size: 13px; color: #424245; line-height: 1.6;">
-                                <span style="color: #E60012; font-weight: 700; font-size: 10px; margin-right: 6px;">KEY INSIGHT:</span>
-                                {clean_summary}
-                            </p>
-                        </div>
-    
-                        <div style="display: flex; justify-content: flex-end; align-items: center; border-top: 1px solid #F5F5F7; padding-top: 12px;">
-                            <a href="{pod.get('url','#')}" target="_blank" style="
-                                color: #0071E3; 
-                                font-size: 12px; 
-                                text-decoration: none; 
-                                font-weight: 600;
-                            ">
-                                VIEW FULL TRANSCRIPT &gt;
-                            </a>
-                        </div>
+        pod_list = data_feeds.get("Podcasts", [])
+        if pod_list:
+            for pod in pod_list[:8]:
+                raw_transcript = pod.get('transcript', '')
+                clean_summary = re.sub(r'Speaker \d+ \| \d+:\d+ - \d+:\d+', '', raw_transcript)
+                clean_summary = html.escape(clean_summary.strip())[:240] + "..."
+                pub_date = str(pod.get('publishedAt', ''))[:10] or "2026-04-10"
+                
+                st.markdown(f"""
+                <div class="product-card">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+                        <span style="border-left:3px solid #E60012; padding-left:8px; font-size:11px; font-weight:700; color:#1D1D1F;">{pod.get('name', 'PODCAST').upper()}</span>
+                        <span style="color:#86868B; font-size:11px;">{pub_date}</span>
                     </div>
-                    """, unsafe_allow_html=True)
-
-
+                    <h4 style="margin:0 0 12px 0; font-size:17px; color:#1D1D1F; line-height:1.4;">{html.escape(pod.get('title', ''))}</h4>
+                    <div class="insight-box">
+                        <p style="margin:0; font-size:13px; color:#424245; line-height:1.6;">
+                            <span style="color:#E60012; font-weight:700; font-size:10px; margin-right:6px;">KEY INSIGHT:</span>{clean_summary}
+                        </p>
+                    </div>
+                    <div style="text-align:right; margin-top:10px; border-top:1px solid #F2F2F7; padding-top:10px;">
+                        <a href="{pod.get('url','#')}" target="_blank" style="color:#0071E3; font-size:12px; text-decoration:none; font-weight:600;">VIEW TRANSCRIPT &rarr;</a>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
 
     with tab3:
         blog_list = data_feeds.get("Blogs", [])
         if blog_list:
             for blog in blog_list[:8]:
-                # 1. 尝试从多个可能的字段取日期
-                # 优先级：publishedAt > date > 抓取时间(generatedAt)
                 raw_date = blog.get('publishedAt') or blog.get('date')
-                
-                if raw_date:
-                    # 转换格式：处理类似 2026-04-10T... 或直接是日期字符串的情况
-                    date_str = str(raw_date)[:10] 
-                else:
-                    # 如果博客本身没日期，尝试用整个文件的生成时间
-                    date_str = data_feeds.get("generatedAt", "2026-04-19")[:10]
-    
+                date_str = str(raw_date)[:10] if raw_date else "2026-04-19"
                 clean_blog = html.unescape(blog.get('content', blog.get('description', '')))[:200] + "..."
-    
+                
                 st.markdown(f"""
                 <div class="product-card">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span class="tag" style="background-color:#E8F2FF; color:#0071E3;">{blog.get('name', 'Official Blog')}</span>
-                        <span style="color:#86868b; font-size:11px; font-weight:500;">📅 {date_str}</span>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <span class="tag" style="background-color:#E8F2FF; color:#0071E3; margin:0;">{blog.get('name', 'Official Blog')}</span>
+                        <span style="color:#86868b; font-size:11px;">Date: {date_str}</span>
                     </div>
-                    <h4 style="margin:12px 0 8px 0; font-size:16px; line-height:1.4;">{blog.get('title')}</h4>
+                    <h4 style="margin:0 0 10px 0; font-size:17px; line-height:1.4;">{blog.get('title')}</h4>
                     <p style="font-size:13px; color:#424245; line-height:1.6;">{clean_blog}</p>
                     <div style="margin-top:12px; text-align:right; border-top:1px solid #F5F5F7; padding-top:10px;">
-                        <a href="{blog.get('url','#')}" target="_blank" style="color:#0071e3; font-size:12px; text-decoration:none; font-weight:600;">阅读全文 →</a>
+                        <a href="{blog.get('url','#')}" target="_blank" style="color:#0071e3; font-size:12px; text-decoration:none; font-weight:600;">READ FULL ARTICLE &rarr;</a>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
 
-
-# --- 页面 3: 学习资料库 ---
 elif selected == "AI 学习资料库":
     st.markdown("<h1 style='text-align: center;'>📚 知识库</h1>", unsafe_allow_html=True)
     st.info("内容正在开发中...")

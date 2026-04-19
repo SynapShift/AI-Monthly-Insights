@@ -145,10 +145,10 @@ if selected == "AI 产品进展":
 elif selected == "知名博主动态":
     st.markdown("<h1 style='text-align: center; margin-bottom: 20px;'>🏗️ 知名博主动态</h1>", unsafe_allow_html=True)
     
-    # ================= 1. 差异化视觉对齐 CSS =================
+    # ================= 1. 绝对统一视觉样式 =================
     st.markdown("""
     <style>
-    /* 容器边框美化 */
+    /* 容器边框 */
     [data-testid="stVerticalBlockBorderWrapper"] {
         border-radius: 16px !important;
         border-color: #F2F2F7 !important;
@@ -156,49 +156,48 @@ elif selected == "知名博主动态":
         padding: 20px !important;
     }
 
-    /* --- 核心：通过字号差实现视觉对齐 --- */
+    /* --- 核心：按钮与链接 10px 加粗无差别对齐 --- */
     
-    /* 1. c2: 阅读全文按钮 - 降为 10px 并加粗 */
+    /* 统一按钮样式 */
     div[data-testid="stButton"] button {
         background-color: transparent !important;
         color: #0071E3 !important;
         border: none !important;
         padding: 0 !important;
         margin: 0 !important;
-        font-size: 10px !important; /* 降低字号至 10px */
-        font-weight: 700 !important; /* 保持强加粗 */
-        width: auto !important;
-        min-width: 0 !important;
-        height: 20px !important;
-        line-height: 20px !important; 
-        display: inline-flex !important;
+        font-size: 10px !important; 
+        font-weight: 700 !important;
+        height: 20px !important; 
+        display: flex !important;
         align-items: center !important;
         justify-content: flex-end !important;
-        vertical-align: middle !important;
+        line-height: 1 !important;
         box-shadow: none !important;
+        min-width: 0 !important;
     }
     
     div[data-testid="stButton"] button:hover {
         text-decoration: underline !important;
     }
 
-    /* 2. c3: 收听原片链接 - 保持 12px 加粗 */
+    /* 统一链接样式 */
     .unified-link {
         color: #0071E3 !important;
-        font-size: 12px !important; 
+        font-size: 10px !important; 
         text-decoration: none !important;
-        font-weight: 700 !important; 
-        height: 20px !important;
-        line-height: 20px !important; 
+        font-weight: 700 !important;
+        height: 20px !important; 
         display: inline-flex;
         align-items: center;
+        line-height: 1 !important;
         vertical-align: middle;
+        white-space: nowrap;
     }
     .unified-link:hover {
         text-decoration: underline !important;
     }
 
-    /* 强制列布局：压死间距，确保右对齐 */
+    /* 强制列容器高度对齐 */
     [data-testid="column"] {
         display: flex !important;
         justify-content: flex-end !important;
@@ -210,7 +209,7 @@ elif selected == "知名博主动态":
     data_feeds = fetch_builder_feeds()
     tab1, tab2, tab3 = st.tabs(["Twitter Insights", "Podcast Summary", "Official Blog"])
 
-    # --- Tab 1: Twitter (样式复用 unified-link) ---
+    # --- Tab 1: Twitter ---
     with tab1:
         twitter_list = data_feeds.get("Twitter", [])
         if twitter_list:
@@ -267,7 +266,7 @@ elif selected == "知名博主动态":
                     <div style="border-top: 1px solid #F5F5F7; margin-bottom: -10px; margin-top: 10px;"></div>
                     """, unsafe_allow_html=True)
                     
-                    # 比例锁定你的黄金数值
+                    # 比例 [0.82, 0.09, 0.09]
                     c1, c2, c3 = st.columns([0.82, 0.09, 0.09])
                     with c2:
                         if st.button("阅读全文 ↗", key=f"btn_{pod.get('url')}"):
